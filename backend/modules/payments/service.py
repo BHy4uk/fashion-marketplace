@@ -34,13 +34,16 @@ class PaymentService:
             raise DomainError("ORDER_NOT_FOUND", "Order not found", 404)
         if user["_id"] != snap.buyer_id:
             raise DomainError("UNAUTHORIZED_ACCESS", "Only the buyer may pay", 403)
+
+        # Idempotent: an already-captured/settled payment short-circuits regardless of
+        # the order's current status (e.g. order already Paid).
+        existing = await self.repo.by_order(order_id)
+        if existing and existing.status in ("Captured", "Settled"):
+            return {"payment_id": existing.id, "status": existing.status, "redirect": None}
+
         if snap.status != "AwaitingPayment":
             raise DomainError("ORDER_NOT_PAYABLE",
                               f"Order in {snap.status} cannot be paid", 409)
-
-        existing = await self.repo.by_order(order_id)
-        if existing and existing.status in ("Captured", "Settled"):
-            return {"payment_id": existing.id, "status": existing.status}
 
         payment = existing or Payment.create(
             order_id=order_id, buyer_id=snap.buyer_id, seller_id=snap.seller_id,

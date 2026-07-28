@@ -7,7 +7,7 @@ Orders reacts to. Pure domain: no framework, no provider, no DB.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from buildingblocks.domain import AggregateRoot, AuditInfo, DomainError, new_id, utc_now
 
@@ -98,8 +98,12 @@ class Payment(AggregateRoot):
 
     def is_release_due(self, now: datetime | None = None) -> bool:
         now = now or utc_now()
-        return (self.status == "Captured" and self.held
-                and self.release_at is not None and now >= self.release_at)
+        if self.release_at is None:
+            return False
+        release_at = self.release_at
+        if release_at.tzinfo is None:                 # Mongo may return naive UTC
+            release_at = release_at.replace(tzinfo=timezone.utc)
+        return self.status == "Captured" and self.held and now >= release_at
 
     def release(self, provider_ref: str | None = None) -> None:
         self._transition("Settled")

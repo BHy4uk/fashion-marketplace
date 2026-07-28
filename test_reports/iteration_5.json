@@ -1,0 +1,27 @@
+{
+  "summary": "Retest of the two iteration_4 bugs (escrow tz-naive comparison + idempotent double-pay) plus full regression + frontend flow. Both fixes VERIFIED. Full pytest suite: 67/67 passing (all Identity, Listings, Offers, Orders, Payments, atomic outbox). Frontend Playwright E2E: seller lists -> buyer offers -> seller accepts -> order becomes AwaitingPayment -> buyer clicks Pay now -> 'Payment captured — funds held in escrow' toast -> reload shows order-status-<id> = 'Paid' (humanized; status_history renders 'Created → Awaiting Payment → Paid') -> Pay/Cancel buttons removed. Second POST /api/payments/checkout on the same (now Paid) order returns 200 with status=Captured and the SAME payment_id (idempotent). No 409 emitted.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_payments.py",
+    "/app/backend/tests/test_orders.py",
+    "/app/backend/tests/test_offers.py",
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "BUGFIX 1 correctly implemented in modules/payments/domain.py Payment.is_release_due(): coerces naive release_at to UTC-aware before comparing with now. Verified via test_schedule_release_and_release_due and test_sweeper_ignores_payments_without_release_at (both green).",
+    "BUGFIX 2 correctly implemented in modules/payments/service.py PaymentService.checkout(): the existing captured/settled payment short-circuits BEFORE the AwaitingPayment status guard. Genuinely un-payable states (Canceled) still yield 409 ORDER_NOT_PAYABLE; non-buyer still 403; missing order 404 — all covered by test_payments.py.",
+    "Minor (carried forward, non-blocking): release_due() still does O(2N) queries and silently swallows CONCURRENCY_CONFLICT DomainError — worth a log line for operators.",
+    "Minor (carried forward): handle_webhook() has no explicit branch for LiqPay wait_secure/wait_accept statuses; unknown-status noop+log would be safer for production."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (67/67 pytest)", "frontend": "100% on the Pay-now humanized-status flow"},
+  "test_credentials": "seller@archivemarket.co / Seller12345, admin@archivemarket.co / Admin12345. Fresh buyer TEST_e2e_retest_<hex>@example.com / Buyer12345.",
+  "seed_data_creation": "One TEST_e2e_retest_* listing + fresh buyer + one order taken through Awaiting Payment -> Paid.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase 6 Payments + Escrow is fully green. Both previously reported bugs (idempotent double-pay + tz-naive is_release_due) are fixed and verified. Frontend Orders.js humanize() correctly renders 'Awaiting Payment' (was 'AwaitingPayment') everywhere including status_history. Run full suite from /app/backend with `export MONGO_URL='mongodb://localhost:27017' DB_NAME='fashion_marketplace' REACT_APP_BACKEND_URL=$(grep REACT_APP_BACKEND_URL /app/frontend/.env | cut -d= -f2) && python -m pytest tests/ -q` (~1 min).",
+  "rca_of_the_issue": "N/A — both prior bugs confirmed fixed."
+}

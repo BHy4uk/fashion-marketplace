@@ -10,6 +10,8 @@ const STATUS_BADGE = {
   Canceled: "badge", Refunded: "badge", Closed: "badge",
 };
 
+const humanize = (s) => (s || "").replace(/([a-z])([A-Z])/g, "$1 $2");
+
 export default function Orders() {
   const { user } = useAuth();
   const [box, setBox] = useState("buyer");
@@ -81,7 +83,7 @@ export default function Orders() {
                   <div className="row" style={{ gap: 10 }}>
                     <span className="overline">{o.order_number}</span>
                     <span className={`badge ${STATUS_BADGE[o.status] || "badge"}`}
-                      data-testid={`order-status-${o.id}`}>{o.status}</span>
+                      data-testid={`order-status-${o.id}`}>{humanize(o.status)}</span>
                   </div>
                   <div className="heading" style={{ fontSize: 22, marginTop: 6 }}>
                     {formatPrice({ amount: o.total, currency: o.currency })}
@@ -108,7 +110,7 @@ export default function Orders() {
               {o.status_history?.length > 0 && (
                 <div className="hint mt-16" data-testid={`order-history-${o.id}`}>
                   {o.status_history.map((h, i) => (
-                    <span key={i}>{i > 0 && " → "}{h.to_status}</span>
+                    <span key={i}>{i > 0 && " → "}{humanize(h.to_status)}</span>
                   ))}
                 </div>
               )}
