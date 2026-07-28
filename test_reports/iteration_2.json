@@ -1,0 +1,51 @@
+{
+  "summary": "Phase 4 (DOMAIN-004 Offers) full backend + frontend regression. Wrote /app/backend/tests/test_offers.py (13 tests) covering §8 creation rules, turn model, INV-005 acceptance atomicity, rejection, cancellation, §22 authz/privacy and box/listing views. All 13 offer tests + all 19 Phase 0-3 regression tests pass (32/32). Frontend end-to-end negotiation (buyer make offer -> seller counter -> buyer accept) works: status flips to Accepted, offer-history-<id> shows both revisions. Own-listing offer surfaces the expected error toast. Iteration 1 bugs (brute-force lockout, Draft archive) appear fixed: pytest test_brute_force_lockout now passes (429 with ACCOUNT_LOCKED). No new blocking issues found in Phase 4.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "GET /api/listings",
+        "issue": "Sort order lets user-created listings float above seed listings by default, which is not a bug but combined with a persistent offer_acceptances lock (per-listing exactly-once, INV-005) can permanently block negotiation-accept flows against a listing whose acceptance came from a leaked/aborted flow. Consider: (a) exposing an admin cleanup path for stale acceptance locks, or (b) tying the lock to the specific offer_id so re-testing on the same listing after cancel/reject scenarios remains possible. In production this is by-design (one sale per listing) so not a real bug."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Offers page (/offers)",
+        "issues": [
+          "Minor: Awaiting label reads 'Awaiting seller' or 'Awaiting buyer' generically; from a UX perspective it would be clearer to say 'Awaiting your response' when it is the viewer's turn and 'Waiting on <other party>' otherwise. Cosmetic only."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_offers.py",
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "offers/service.py accept(): acquire_acceptance_lock is called AFTER the aggregate has already transitioned to Accepted in-memory. If the lock acquisition raises (OFFER_ALREADY_ACCEPTED), the aggregate is discarded (not persisted), which is correct. But make sure repo.save() failure after the lock succeeds is compensated (e.g., release lock) — currently a repo.save() failure could leave a stuck lock with no accepted offer document. Consider a compensating cleanup or reserving the lock keyed on offer_id, not just listing_id.",
+    "offers/domain.py accept(): _acting_role runs turn/state/expiry checks and _transition('Accepted') mutates state before acquire_acceptance_lock. If two counterparties concurrently accept two different offers on the same listing, both will pass domain validation and one will fail at the DB lock — good — but the losing aggregate is silently discarded (not persisted as anything). Consider persisting a domain event / audit trail for 'accept attempted but lost the race' if analytics require it.",
+    "offers/repository.py acquire_acceptance_lock uses a unique _id=listing_id document which is a solid exactly-once guard (verified in test_acceptance_atomicity_blocks_other_offers). Good.",
+    "Frontend Offers.js: roleFor(o) relies on user being non-null; the page is protected but on cold-load user may briefly be undefined, causing a crash. Consider a guard `if (!user) return null`.",
+    "Frontend Offers.js line 94: counter default = round(current_amount / 100). Since amount is in minor units this yields UAH major units correctly, but numbers like 1500 rendered from a ₴6900 listing may confuse users; consider prefilling with the last offer amount as major units with decimals if fractional.",
+    "ListingDetail.js openOffer() computes 0.9 * price/100 which is fine, but pdp-offer-button is only rendered when allow_offers is true — that means Phase-4 UI for an OFFERS_DISABLED listing is invisible. Acceptable, but no user feedback if a listing changes allow_offers mid-session."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_offers.py"
+  ],
+  "success_rate": {
+    "backend": "100% (32/32 pytest)",
+    "frontend": "100% on Phase 4 flows"
+  },
+  "test_credentials": "Seed seller seller@archivemarket.co / Seller12345, admin admin@archivemarket.co / Admin12345. Buyers registered on the fly with TEST_ prefix.",
+  "seed_data_creation": "Cleaned up: dropped 13 stale TEST_ listings and 9 stale offers plus stale offer_acceptances lock on seeded listing 'Vintage Wool Overcoat' left over from earlier iteration runs. During Phase 4 testing a fresh listing per negotiation scenario is created and archived at end where possible; buyer test users are TEST_off_* / TEST_ui2_* prefixed.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Two backend test files in /app/backend/tests/: backend_test.py (Phase 0-3) and test_offers.py (Phase 4). Run with `pytest backend/tests/ --junitxml=/app/test_reports/pytest/pytest_results.xml` after `export REACT_APP_BACKEND_URL=$(grep REACT_APP_BACKEND_URL /app/frontend/.env | cut -d= -f2)`. Note that INV-005 uses a per-listing lock in offer_acceptances collection — repeated test runs against the SAME seeded listing that has accepted will trip OFFER_ALREADY_ACCEPTED. The Phase 4 tests avoid this by using _make_fresh_listing() for scenarios that reach Accepted. For frontend E2E use a distinct seeded slug (e.g. vintage-wool-overcoat-4815be) and remember to clear its offer_acceptances lock if a prior run accepted on it: `db.offer_acceptances.delete_one({'_id': listing_id})`. All Phase 4 offer testids are as documented (pdp-offer-button, offer-modal, offer-amount-input, offer-submit-button, offers-tab-buyer/seller, offer-row-<id>, offer-status-<id>, offer-accept/reject/counter/cancel-<id>, offer-counter-input/submit-<id>, offer-history-<id>).",
+  "rca_of_the_issue": "N/A — no blocking issues in Phase 4. During first E2E run the accept step got OFFER_ALREADY_ACCEPTED because the seeded listing being tested against still had an entry in offer_acceptances left over from the atomicity backend test's initial (pre-refactor) run. Root cause was test-ordering only — cleared the stale acceptance lock, refactored negotiation tests to use fresh listings, and the E2E accept flow works end-to-end (status 'Accepted', history shows buyer ₴1,500 → seller ₴1,800)."
+}

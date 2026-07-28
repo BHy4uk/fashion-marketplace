@@ -22,6 +22,8 @@ from buildingblocks import outbox
 from modules.administration.router import router as taxonomy_router
 from modules.identity.router import auth_router, users_router
 from modules.listings.router import router as listings_router
+from modules.offers.router import router as offers_router
+from modules.offers.service import OfferService
 from seed import ensure_indexes, seed_admin_and_demo, seed_taxonomy
 
 logging.basicConfig(level=logging.INFO)
@@ -64,7 +66,20 @@ for _evt in ("UserRegistered", "ListingPublished", "OfferAccepted", "OrderCreate
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(listings_router)
+app.include_router(offers_router)
 app.include_router(taxonomy_router)
+
+
+async def _offer_expiration_sweeper(db):
+    """Async expiration of stale offers (DOMAIN-004 §12, §19)."""
+    while True:
+        try:
+            n = await OfferService(db).expire_due()
+            if n:
+                log.info("[offers] expired %d stale offers", n)
+        except Exception:  # noqa: BLE001
+            log.exception("offer expiration sweep error")
+        await asyncio.sleep(60)
 
 
 @app.on_event("startup")
@@ -74,4 +89,5 @@ async def startup():
     await seed_taxonomy(db)
     await seed_admin_and_demo(db)
     asyncio.create_task(outbox.run_relay(db))
+    asyncio.create_task(_offer_expiration_sweeper(db))
     log.info("startup complete")

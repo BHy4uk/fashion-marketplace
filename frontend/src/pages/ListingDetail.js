@@ -1,17 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { Tag, ShieldCheck, Star } from "@phosphor-icons/react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { Tag, ShieldCheck, Star, X } from "@phosphor-icons/react";
 import { toast } from "sonner";
-import api, { formatPrice } from "../lib/api";
+import api, { formatPrice, apiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { CONDITION_LABEL } from "../components/ProductCard";
 
 export default function ListingDetail() {
   const { idOrSlug } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [listing, setListing] = useState(null);
   const [active, setActive] = useState(0);
   const [notFound, setNotFound] = useState(false);
+  const [showOffer, setShowOffer] = useState(false);
+  const [offerAmount, setOfferAmount] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     api.get(`/listings/${idOrSlug}`)
@@ -31,7 +35,31 @@ export default function ListingDetail() {
 
   const action = (label) => {
     if (!user) { toast.error("Please log in to continue"); return; }
-    toast.success(`${label} — checkout & offers ship in the next milestone`);
+    toast.success(`${label} — checkout ships in the next milestone`);
+  };
+
+  const openOffer = () => {
+    if (!user) { navigate("/login"); return; }
+    setOfferAmount(String(Math.round((listing.price.amount / 100) * 0.9)));
+    setShowOffer(true);
+  };
+
+  const submitOffer = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await api.post("/offers", {
+        listing_id: listing.id,
+        amount: Math.round(parseFloat(offerAmount) * 100),
+      });
+      toast.success("Offer sent to the seller");
+      setShowOffer(false);
+      navigate("/offers");
+    } catch (err) {
+      toast.error(apiError(err));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -69,8 +97,32 @@ export default function ListingDetail() {
             <Tag size={18} weight="bold" /> Buy Now
           </button>
           {listing.allow_offers && (
-            <button className="btn btn-block" onClick={() => action("Make Offer")}
+            <button className="btn btn-block" onClick={openOffer}
               data-testid="pdp-offer-button">Make an Offer</button>
+          )}
+
+          {showOffer && (
+            <div className="offer-modal-backdrop" data-testid="offer-modal"
+              onClick={() => setShowOffer(false)}>
+              <div className="panel offer-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}>
+                  <span className="overline">Make an offer</span>
+                  <button onClick={() => setShowOffer(false)} data-testid="offer-modal-close"
+                    style={{ border: "none", background: "none" }}><X size={18} /></button>
+                </div>
+                <p className="hint mb-12">Listing price: {formatPrice(listing.price)}</p>
+                <form onSubmit={submitOffer}>
+                  <label className="field overline">Your offer ({listing.price.currency})</label>
+                  <input data-testid="offer-amount-input" type="number" min="1" step="0.01"
+                    value={offerAmount} onChange={(e) => setOfferAmount(e.target.value)}
+                    required autoFocus className="mb-12" />
+                  <button className="btn btn-primary btn-block" disabled={submitting}
+                    data-testid="offer-submit-button">
+                    {submitting ? "Sending…" : "Send offer"}
+                  </button>
+                </form>
+              </div>
+            </div>
           )}
 
           <div className="row" style={{ gap: 8, marginTop: 14, color: "var(--success)" }}>

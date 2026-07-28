@@ -180,3 +180,12 @@ label.field { display: block; margin-bottom: 6px; }
 .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 @media (max-width: 640px) { .grid-form { grid-template-columns: 1fr; } }
 .mb-12 { margin-bottom: 12px; } .mb-24 { margin-bottom: 24px; } .mt-16 { margin-top: 16px; }
+
+/* offer modal */
+.offer-modal-backdrop {
+  position: fixed; inset: 0; z-index: 100; background: rgba(10, 10, 10, 0.45);
+  display: grid; place-items: center; padding: 20px;
+}
+.offer-modal { width: 100%; max-width: 380px; }
+.chip-active { background: var(--text); color: #fff; }
+button.chip { cursor: pointer; }
