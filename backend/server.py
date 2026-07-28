@@ -28,6 +28,9 @@ from modules.orders.router import router as orders_router
 from modules.orders import handlers as order_handlers
 from modules.listings import handlers as listing_handlers
 from modules.offers import handlers as offer_handlers
+from modules.payments.router import router as payments_router
+from modules.payments import handlers as payment_handlers
+from modules.payments.service import PaymentService
 from seed import ensure_indexes, seed_admin_and_demo, seed_taxonomy
 
 logging.basicConfig(level=logging.INFO)
@@ -72,6 +75,7 @@ app.include_router(users_router)
 app.include_router(listings_router)
 app.include_router(offers_router)
 app.include_router(orders_router)
+app.include_router(payments_router)
 app.include_router(taxonomy_router)
 
 # Register cross-domain event subscribers (choreography). Order matters only for
@@ -79,6 +83,7 @@ app.include_router(taxonomy_router)
 order_handlers.register()
 listing_handlers.register()
 offer_handlers.register()
+payment_handlers.register()
 
 
 async def _offer_expiration_sweeper(db):
@@ -93,6 +98,18 @@ async def _offer_expiration_sweeper(db):
         await asyncio.sleep(60)
 
 
+async def _escrow_release_sweeper(db):
+    """Release seller payouts whose escrow hold window has elapsed (DOMAIN-006, Q3)."""
+    while True:
+        try:
+            n = await PaymentService(db).release_due()
+            if n:
+                log.info("[payments] released %d escrow payouts", n)
+        except Exception:  # noqa: BLE001
+            log.exception("escrow release sweep error")
+        await asyncio.sleep(60)
+
+
 @app.on_event("startup")
 async def startup():
     db = get_db()
@@ -101,4 +118,5 @@ async def startup():
     await seed_admin_and_demo(db)
     asyncio.create_task(outbox.run_relay(db))
     asyncio.create_task(_offer_expiration_sweeper(db))
+    asyncio.create_task(_escrow_release_sweeper(db))
     log.info("startup complete")

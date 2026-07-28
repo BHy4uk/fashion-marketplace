@@ -82,6 +82,19 @@ class OrderService:
         await self.repo.release_listing_lock(order.listing_id, order.id)  # free the listing
         return order
 
+    # ---- reactions to Payment events (idempotent; invoked by event handlers) ----
+    async def mark_paid(self, order_id: str, payment_id: str) -> None:
+        order = await self.repo.by_id(order_id)
+        if order and order.status == "AwaitingPayment":
+            order.mark_paid(payment_id)
+            await self.repo.save(order)
+
+    async def mark_refunded(self, order_id: str) -> None:
+        order = await self.repo.by_id(order_id)
+        if order and order.status == "Paid":
+            order.refund()
+            await self.repo.save(order)
+
     # ---- views ----
     async def _view(self, o: Order) -> dict:
         return self._view_doc({

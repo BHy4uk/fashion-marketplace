@@ -25,6 +25,29 @@ export default function Orders() {
 
   if (!user) return null;
 
+  const pay = async (id) => {
+    try {
+      const { data } = await api.post("/payments/checkout", { order_id: id });
+      if (data.checkout_url && data.data) {
+        // LiqPay hosted checkout: POST the signed form to the provider
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = data.checkout_url;
+        [["data", data.data], ["signature", data.signature]].forEach(([n, v]) => {
+          const i = document.createElement("input");
+          i.type = "hidden"; i.name = n; i.value = v; form.appendChild(i);
+        });
+        document.body.appendChild(form);
+        form.submit();
+        return;
+      }
+      toast.success("Payment captured — funds held in escrow");
+      load();
+    } catch (e) {
+      toast.error(apiError(e));
+    }
+  };
+
   const cancel = async (id) => {
     try {
       await api.post(`/orders/${id}/cancel`);
@@ -74,7 +97,7 @@ export default function Orders() {
                   {box === "buyer" && o.status === "AwaitingPayment" && (
                     <>
                       <button className="btn btn-primary btn-sm"
-                        onClick={() => toast.success("Checkout (LiqPay escrow) ships in Phase 6")}
+                        onClick={() => pay(o.id)}
                         data-testid={`order-pay-${o.id}`}>Pay now</button>
                       <button className="btn btn-sm" onClick={() => cancel(o.id)}
                         data-testid={`order-cancel-${o.id}`}>Cancel</button>

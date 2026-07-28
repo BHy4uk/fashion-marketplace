@@ -50,3 +50,25 @@ platform-owned via Administration. Team: 1-3 eng + AI; optimize for maintainabil
 - Buy Now / Make Offer buttons are UI-only (toast) pending Offers/Orders/Payments phases.
 - Image upload = URL input (object storage deferred).
 - Email verification wired but auto-activated (not enforced in MVP).
+
+## Update 2026-06 (Phase 4 + Phase 5 + atomic outbox)
+- Phase 4 OFFERS (DOMAIN-004): Offer aggregate, turn-based negotiation, immutable revision history,
+  atomic single-acceptance (offer_acceptances unique lock), events, expiration sweeper. Frontend: Make Offer + /offers.
+- Atomic OUTBOX: events embedded in aggregate document ($set+$push single atomic write), relay dispatches
+  + $pull. Solves the "2-write" debt (blocking prereq for Payments). All 3->4 repos migrated.
+- Phase 5 ORDERS (DOMAIN-005): Order aggregate (immutable totals, full lifecycle state machine, status
+  history), event-driven creation from OfferAccepted (idempotent, atomic order_listing_locks + unique offer_id),
+  seller-paid 10% platform fee (PLATFORM_FEE_PERCENT), buyer cancel (AwaitingPayment->Canceled). Choreography:
+  OrderCreated -> Listings.reserve; OrderCanceled -> Listings.release + Offers.release_lock. Frontend: /orders.
+- Listings->Contracts refactor: Listings now reads Identity via IdentityContract (no cross-module DB access).
+- Tests: 46/46 pytest (backend_test.py + test_offers.py + test_orders.py). iteration_2 & iteration_3 reports.
+
+## Carried technical debt
+- Orders: no pagination on list; cancel lock-release not reconciled on failure (future reconciler).
+- Search still inside Listings (not own bounded context); email verification auto-activated.
+
+## Phase 6 PAYMENTS (next) — decisions locked
+- LiqPay primary via IPaymentProvider (config-selected); Stripe/Adyen/Fondy/WayForPay addable w/o redesign.
+- Capture immediately; funds held; payout released 72h after Order Completed (configurable) unless
+  dispute/moderation/fraud; dispute freezes. Escrow lives ONLY in Payments. Orders reacts to PaymentCaptured
+  (-> Paid) via events. NEEDS: LiqPay public_key + private_key from user (sandbox ok).
