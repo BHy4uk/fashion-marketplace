@@ -72,3 +72,26 @@ platform-owned via Administration. Team: 1-3 eng + AI; optimize for maintainabil
 - Capture immediately; funds held; payout released 72h after Order Completed (configurable) unless
   dispute/moderation/fraud; dispute freezes. Escrow lives ONLY in Payments. Orders reacts to PaymentCaptured
   (-> Paid) via events. NEEDS: LiqPay public_key + private_key from user (sandbox ok).
+
+## Update 2026-06 (Phase 6 PAYMENTS + ESCROW) — COMPLETE & TESTED (67/67)
+- Payment aggregate (DOMAIN-006): money lifecycle Created->PendingAuthorization->Authorized->Captured->Settled
+  (+Failed/Canceled/Refunded); append-only PaymentTransaction ledger; escrow (held on capture; release_at set
+  on OrderCompleted; released by sweeper). Events: PaymentCreated/Initiated/Authorized/Captured/ReleaseScheduled/
+  Released/Refunded/Failed.
+- IPaymentProvider abstraction + SandboxProvider (default, deterministic, no keys) + LiqPayProvider (sha3-256
+  signed data, hold/capture/refund; PAYMENT_PROVIDER + LIQPAY_PUBLIC_KEY/LIQPAY_PRIVATE_KEY to activate).
+- Choreography: buyer POST /api/payments/checkout -> capture into escrow -> PaymentCaptured -> Orders.mark_paid
+  (AwaitingPayment->Paid). OrderCompleted -> Payments.schedule_release(+72h). OrderCanceled -> Payments.refund.
+  Escrow release sweeper (60s) settles due payouts. Payments NEVER mutates Orders (events only).
+- OrderContract added (Payments reads Orders via contract, no cross-module DB). Unique order_id (1 payment/order).
+- Frontend: /orders 'Pay now' -> sandbox capture -> status flips to Paid; humanized status labels.
+- Config: PAYMENT_PROVIDER=sandbox, PAYOUT_HOLD_HOURS=72, PLATFORM_FEE_PERCENT=10.
+
+## To activate real LiqPay (Phase 6 go-live)
+Set in backend/.env: PAYMENT_PROVIDER=liqpay, LIQPAY_PUBLIC_KEY, LIQPAY_PRIVATE_KEY (sandbox_i.../sandbox_...
+from LiqPay dashboard), LIQPAY_SANDBOX=true, BACKEND_PUBLIC_URL=<preview/prod url>. Webhook: /api/payments/webhook/liqpay.
+
+## Next phases
+- Phase 7 Shipping (DOMAIN-007, Nova Poshta via IShippingProvider) -> drives Order Paid->...->Delivered->Completed,
+  which finally activates escrow release end-to-end.
+- Phase 8 Reviews (feeds Identity reputation), Phase 9 Messaging (WebSockets).
