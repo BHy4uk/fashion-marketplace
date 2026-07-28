@@ -7,6 +7,7 @@ from __future__ import annotations
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from buildingblocks.domain import DomainError
+from modules.identity.contracts import IdentityContract
 
 from .domain import Attributes, Listing, ListingImage, Money
 from .repository import ListingRepository
@@ -16,10 +17,10 @@ class ListingService:
     def __init__(self, db: AsyncIOMotorDatabase):
         self.db = db
         self.repo = ListingRepository(db)
+        self.identity = IdentityContract(db)
 
     async def _seller_active(self, seller_id: str) -> bool:
-        u = await self.db.identity_users.find_one({"_id": seller_id})
-        return bool(u and u.get("state") == "Active")
+        return await self.identity.is_active(seller_id)
 
     async def create_draft(self, seller_id: str, data: dict) -> Listing:
         price = Money(amount=data["price_amount"], currency=data.get("currency", "UAH"))
@@ -68,12 +69,25 @@ class ListingService:
         await self.repo.save(l)
         return l
 
+    # ---- event-driven availability (reacts to Order lifecycle, idempotent) ----
+    async def reserve_for_order(self, listing_id: str) -> None:
+        l = await self.repo.by_id(listing_id)
+        if l and l.state == "Published":
+            l.reserve()
+            await self.repo.save(l)
+
+    async def release_reservation(self, listing_id: str) -> None:
+        l = await self.repo.by_id(listing_id)
+        if l and l.state == "Reserved":
+            l.release()
+            await self.repo.save(l)
+
     async def get_public(self, id_or_slug: str) -> dict:
         doc = await self.db.listings.find_one(
             {"$or": [{"_id": id_or_slug}, {"slug": id_or_slug}]})
         if not doc or doc["state"] in ("SoftDeleted", "Draft", "Ready", "Archived"):
             raise DomainError("LISTING_NOT_FOUND", "Listing not found", 404)
-        seller = await self.db.identity_users.find_one({"_id": doc["seller_id"]})
+        seller = await self.identity.summary(doc["seller_id"])
         return _view(doc, seller)
 
     async def my_listings(self, seller_id: str) -> list[dict]:
@@ -131,7 +145,6 @@ def _view(doc: dict, seller: dict | None = None) -> dict:
         "created_at": doc.get("audit", {}).get("created_at"),
     }
     if seller is not None:
-        v["seller"] = {"id": seller["_id"],
-                       "display_name": seller.get("profile", {}).get("display_name"),
+        v["seller"] = {"id": seller["id"], "display_name": seller.get("display_name"),
                        "reputation": seller.get("reputation")}
     return v

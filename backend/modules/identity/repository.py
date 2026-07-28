@@ -7,7 +7,7 @@ from dataclasses import asdict
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from buildingblocks.domain import DomainError
-from buildingblocks.outbox import persist_events
+from buildingblocks.outbox import register_event_collection, to_embedded
 
 from .domain import Profile, Reputation, User
 
@@ -62,19 +62,26 @@ class UserRepository:
 
     async def add(self, user: User) -> None:
         doc = _to_doc(user)
+        doc["pending_events"] = to_embedded(user.pull_events())
         try:
             await self.col.insert_one(doc)
         except Exception as e:  # duplicate email
             if "duplicate" in str(e).lower() or "E11000" in str(e):
                 raise DomainError("EMAIL_EXISTS", "Email already registered", 409)
             raise
-        await persist_events(self.db, user.pull_events())
 
     async def save(self, user: User) -> None:
         expected = user.version
         user.version += 1
-        result = await self.col.replace_one(
-            {"_id": user.id, "version": expected}, _to_doc(user))
+        doc = _to_doc(user)
+        update = {"$set": {k: v for k, v in doc.items() if k != "_id"}}
+        events = to_embedded(user.pull_events())
+        if events:
+            update["$push"] = {"pending_events": {"$each": events}}
+        result = await self.col.update_one(
+            {"_id": user.id, "version": expected}, update)
         if result.matched_count == 0:
             raise DomainError("CONCURRENCY_CONFLICT", "Stale update detected", 409)
-        await persist_events(self.db, user.pull_events())
+
+
+register_event_collection(COLLECTION)

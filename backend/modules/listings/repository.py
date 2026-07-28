@@ -9,7 +9,7 @@ from dataclasses import asdict
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from buildingblocks.domain import DomainError
-from buildingblocks.outbox import persist_events
+from buildingblocks.outbox import register_event_collection, to_embedded
 
 from .domain import Attributes, Listing, ListingImage, Money
 
@@ -51,13 +51,21 @@ class ListingRepository:
         return _from_doc(doc) if doc else None
 
     async def add(self, l: Listing) -> None:
-        await self.col.insert_one(_to_doc(l))
-        await persist_events(self.db, l.pull_events())
+        doc = _to_doc(l)
+        doc["pending_events"] = to_embedded(l.pull_events())
+        await self.col.insert_one(doc)
 
     async def save(self, l: Listing) -> None:
         expected = l.version
         l.version += 1
-        res = await self.col.replace_one({"_id": l.id, "version": expected}, _to_doc(l))
+        doc = _to_doc(l)
+        update = {"$set": {k: v for k, v in doc.items() if k != "_id"}}
+        events = to_embedded(l.pull_events())
+        if events:
+            update["$push"] = {"pending_events": {"$each": events}}
+        res = await self.col.update_one({"_id": l.id, "version": expected}, update)
         if res.matched_count == 0:
             raise DomainError("CONCURRENCY_CONFLICT", "Stale update detected", 409)
-        await persist_events(self.db, l.pull_events())
+
+
+register_event_collection(COLLECTION)

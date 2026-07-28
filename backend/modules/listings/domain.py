@@ -138,6 +138,11 @@ class Listing(AggregateRoot):
         self._transition("Reserved")
         self._raise("ListingReserved", {"listing_id": self.id})
 
+    def release(self) -> None:
+        """Reservation released (e.g. the order was canceled): Reserved → Published."""
+        self._transition("Published")
+        self._raise("ListingReservationReleased", {"listing_id": self.id})
+
     def mark_sold(self) -> None:
         self._transition("Sold")
         self._raise("ListingSold", {"listing_id": self.id})

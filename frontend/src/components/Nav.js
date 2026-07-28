@@ -42,6 +42,7 @@ export default function Nav() {
                 <Plus size={16} weight="bold" /> Sell
               </Link>
               <Link to="/offers" className="nav-link" data-testid="nav-offers-link">Offers</Link>
+              <Link to="/orders" className="nav-link" data-testid="nav-orders-link">Orders</Link>
               <Link to="/dashboard" className="nav-link row" data-testid="nav-dashboard-link" style={{ gap: 6 }}>
                 <User size={18} /> {user.profile?.display_name?.split(" ")[0] || "Account"}
               </Link>

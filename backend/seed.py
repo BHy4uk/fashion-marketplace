@@ -52,6 +52,10 @@ async def ensure_indexes(db: AsyncIOMotorDatabase) -> None:
     await db.offers.create_index([("seller_id", 1), ("audit.updated_at", -1)])
     await db.offers.create_index("listing_id")
     await db.offers.create_index([("status", 1), ("expires_at", 1)])
+    await db.orders.create_index("offer_id", unique=True, sparse=True)
+    await db.orders.create_index([("buyer_id", 1), ("audit.created_at", -1)])
+    await db.orders.create_index([("seller_id", 1), ("audit.created_at", -1)])
+    await db.orders.create_index("listing_id")
     await db.outbox.create_index([("processed", 1), ("created_at", 1)])
 
 

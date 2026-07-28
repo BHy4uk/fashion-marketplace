@@ -59,8 +59,11 @@ def buyer():
 
 
 @pytest.fixture
-def listing():
-    return _first_listing_id()
+def listing(seller):
+    # Phase 5: each test gets a FRESH published listing so that scenarios that
+    # accept an offer (and therefore reserve the listing) don't contaminate the
+    # next test's offer POST (which would 409 LISTING_NOT_AVAILABLE).
+    return _make_fresh_listing(seller)
 
 
 def _make_fresh_listing(seller_sess, allow_offers=True, price_amount=400000):

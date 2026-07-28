@@ -131,6 +131,11 @@ class OfferService:
                            "created_at": r.get("created_at")} for r in d.get("revisions", [])],
         }
 
+    async def release_listing_acceptance(self, listing_id: str) -> None:
+        """Called when an Order for this listing is canceled — frees the listing
+        for future negotiation. Offers owns this lock."""
+        await self.repo.release_by_listing(listing_id)
+
     # ---- background expiration (§12, §19) ----
     async def expire_due(self) -> int:
         from buildingblocks.domain import utc_now

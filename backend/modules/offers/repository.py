@@ -12,7 +12,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from pymongo.errors import DuplicateKeyError
 
 from buildingblocks.domain import DomainError
-from buildingblocks.outbox import persist_events
+from buildingblocks.outbox import register_event_collection, to_embedded
 
 from .domain import Offer, OfferRevision
 
@@ -55,16 +55,21 @@ class OfferRepository:
         return _from_doc(doc) if doc else None
 
     async def add(self, o: Offer) -> None:
-        await self.col.insert_one(_to_doc(o))
-        await persist_events(self.db, o.pull_events())
+        doc = _to_doc(o)
+        doc["pending_events"] = to_embedded(o.pull_events())
+        await self.col.insert_one(doc)
 
     async def save(self, o: Offer) -> None:
         expected = o.version
         o.version += 1
-        res = await self.col.replace_one({"_id": o.id, "version": expected}, _to_doc(o))
+        doc = _to_doc(o)
+        update = {"$set": {k: v for k, v in doc.items() if k != "_id"}}
+        events = to_embedded(o.pull_events())
+        if events:
+            update["$push"] = {"pending_events": {"$each": events}}
+        res = await self.col.update_one({"_id": o.id, "version": expected}, update)
         if res.matched_count == 0:
             raise DomainError("CONCURRENCY_CONFLICT", "Stale update detected", 409)
-        await persist_events(self.db, o.pull_events())
 
     async def acquire_acceptance_lock(self, offer: Offer) -> None:
         """Atomic winner-takes-all per listing. Must be called BEFORE save on accept."""
@@ -83,3 +88,10 @@ class OfferRepository:
         """Compensation: release the lock if persistence fails after acquisition,
         so the listing is not permanently blocked. Only removes our own lock."""
         await self.db[ACCEPTANCE].delete_one({"_id": listing_id, "offer_id": offer_id})
+
+
+    async def release_by_listing(self, listing_id: str) -> None:
+        await self.db[ACCEPTANCE].delete_one({"_id": listing_id})
+
+
+register_event_collection(COLLECTION)

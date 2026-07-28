@@ -24,6 +24,10 @@ from modules.identity.router import auth_router, users_router
 from modules.listings.router import router as listings_router
 from modules.offers.router import router as offers_router
 from modules.offers.service import OfferService
+from modules.orders.router import router as orders_router
+from modules.orders import handlers as order_handlers
+from modules.listings import handlers as listing_handlers
+from modules.offers import handlers as offer_handlers
 from seed import ensure_indexes, seed_admin_and_demo, seed_taxonomy
 
 logging.basicConfig(level=logging.INFO)
@@ -67,7 +71,14 @@ app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(listings_router)
 app.include_router(offers_router)
+app.include_router(orders_router)
 app.include_router(taxonomy_router)
+
+# Register cross-domain event subscribers (choreography). Order matters only for
+# clarity; all dispatch happens asynchronously via the outbox relay.
+order_handlers.register()
+listing_handlers.register()
+offer_handlers.register()
 
 
 async def _offer_expiration_sweeper(db):
