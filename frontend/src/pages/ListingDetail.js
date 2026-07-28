@@ -67,7 +67,12 @@ export default function ListingDetail() {
       <div className="pdp">
         <div className="pdp-gallery" data-testid="pdp-gallery">
           <div className="pdp-main">
-            <img src={listing.images?.[active]?.url} alt={listing.title} />
+            {listing.images?.[active]?.url ? (
+              <img src={listing.images[active].url} alt={listing.title}
+                onError={(e) => { e.currentTarget.style.display = "none";
+                  e.currentTarget.parentElement.classList.add("is-empty"); }} />
+            ) : null}
+            <div className="img-fallback pdp-fallback">{a.brand || "ARCHIVE"}</div>
           </div>
           {listing.images?.length > 1 && (
             <div className="pdp-thumbs">

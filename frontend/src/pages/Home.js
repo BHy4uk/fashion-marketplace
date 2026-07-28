@@ -4,7 +4,7 @@ import { ArrowRight } from "@phosphor-icons/react";
 import api from "../lib/api";
 import ProductCard from "../components/ProductCard";
 
-const HERO = "https://images.unsplash.com/photo-1624353656309-8be1a6c457be?crop=entropy&cs=srgb&fm=jpg&q=85&w=1200";
+const HERO = "https://images.unsplash.com/photo-1508125673219-7cec6bc90159?crop=entropy&cs=srgb&fm=jpg&q=85&w=1200";
 
 export default function Home() {
   const [items, setItems] = useState([]);
@@ -32,7 +32,8 @@ export default function Home() {
             <Link to="/sell" className="btn" data-testid="hero-sell-button">Start selling</Link>
           </div>
         </div>
-        <div className="hero-img"><img src={HERO} alt="Streetwear editorial" /></div>
+        <div className="hero-img"><img src={HERO} alt="Fashion editorial"
+          onError={(e) => { e.currentTarget.style.display = "none"; }} /></div>
       </section>
 
       <div className="toolbar" data-testid="home-categories">
