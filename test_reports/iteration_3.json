@@ -1,0 +1,37 @@
+{
+  "summary": "Phase 5 (DOMAIN-005 Orders + atomic outbox + Listings->Contracts refactor) full backend + frontend regression. Wrote /app/backend/tests/test_orders.py (14 tests) covering domain unit tests (state machine, INV-005/006 immutability), event-driven order auto-creation, order_number ARC- format, platform fee 10%, listing reservation via OrderCreated, 409 LISTING_SOLD on new offers, idempotency (one order per offer), buyer cancel releases listing, seller cannot cancel, cannot cancel twice, third-party 403, admin can view, unauth 401, no public POST /api/orders, atomic outbox (event_type OfferAccepted+OrderCreated recorded, aggregate pending_events cleared), and Listings->Contracts refactor sanity (seller embed in listing detail). Also updated /app/backend/tests/test_offers.py: the `listing` fixture now creates a FRESH published listing per test (via _make_fresh_listing), because Phase 5 reserves listings on accept and reused seeded listings caused the 5 previously-passing offer tests to fail with LISTING_SOLD on new-offer creation. Full pytest suite: 46/46 passing (14 orders + 13 offers + 19 Phase 0-3 regression). Frontend E2E via Playwright confirmed: buyer /orders shows the auto-created order in AwaitingPayment with Pay-now (toast-only) + Cancel; Cancel flips status to Canceled and removes both action buttons; seller /orders Sales tab shows the same order with 'Platform fee: ₴200 · You receive ₴1,800' breakdown; order-history renders Created→AwaitingPayment→Canceled trail.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_orders.py",
+    "/app/backend/tests/test_offers.py",
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "modules/orders/domain.py Order.create_from_offer() transitions directly Created->AwaitingPayment with actor='system'. The OrderCreated event is raised BETWEEN _record('Created') and _transition('AwaitingPayment'); a subsequent AwaitingPayment status entry is recorded but no separate 'OrderAwaitingPayment' event is emitted. Consumers that only see OrderCreated get the payload with an amount but may not realize the aggregate is already in AwaitingPayment. Confirm downstream (payments Phase 6) uses order.status not just the event name.",
+    "modules/orders/service.py create_from_offer_accepted(): acquire_listing_lock uses order.id as the token, but the lock is keyed on listing_id. If two OfferAccepted events for the SAME listing (different offers) both hit at once, one acquires and the other returns by_offer(offer_id) which will be None (its own order was never created) — leading to a silent no-op. INV-021 (§21) is preserved (only one order per listing), but analytically the second event's outcome is opaque. Consider persisting an 'OrderCreationSkipped' audit record when lock contention loses.",
+    "modules/orders/service.py cancel(): after order.cancel() + repo.save(), release_listing_lock() is called unconditionally. If save() succeeds but release_listing_lock raises (e.g., DB blip), the lock stays held and no more offers accept-flow can create a new order for that listing until manual cleanup. Wrap the release in retry or move to a background reconciler.",
+    "modules/orders/domain.py OrderStatusEntry uses default_factory=utc_now for `at`. Because Created and AwaitingPayment are recorded within microseconds inside create_from_offer(), both status_history entries will have very close (possibly identical) timestamps — UI ordering is by list index which is fine, but tests / analytics that sort by `at` alone may reorder them. Consider using an incrementing sequence.",
+    "modules/orders/router.py my_orders() has no pagination (page/size) — as sales/purchases lists grow this returns all documents in one payload. Add page_size limits (e.g., 50) and a `next` cursor.",
+    "frontend Orders.js line 66-69 platform fee message uses `You receive` in inline template but doesn't include a comma before the amount — reads as 'Platform fee: ₴200 · You receive ₴1,800' which is fine but slightly awkward; consider 'You receive: ₴1,800'.",
+    "frontend Orders.js history line 87-89 renders the status_history as 'Created → AwaitingPayment → Canceled' but has no timestamps. Adding hover tooltips with h.at would help buyers understand when the state changed.",
+    "test_offers.py `listing` fixture change: fresh listing per test increases backend cost (14 extra listing creates + publishes per run). Acceptable but if suite grows consider a session-scoped fixture cache keyed on 'scenario needs accept-flow?'"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_orders.py (created)",
+    "/app/backend/tests/test_offers.py (listing fixture -> fresh listing per test)"
+  ],
+  "success_rate": { "backend": "100% (46/46 pytest)", "frontend": "100% on Phase 5 flows" },
+  "test_credentials": "Seed seller seller@archivemarket.co / Seller12345 (display_name 'Kyiv Archive'), admin admin@archivemarket.co / Admin12345. Buyers registered on the fly with TEST_ord_/TEST_off_/TEST_e2e_ prefixes.",
+  "seed_data_creation": "Each test creates its own fresh listing (TEST_ord_*/TEST_off_*/E2E Test Item *) — these accumulate as Reserved/Canceled/Published listings in the DB. Consider a periodic cleanup of TEST_ prefixed listings + their offers/orders + order_listing_locks + offer_acceptances between full regression runs. No manual cleanup was required for this iteration (all tests idempotent under fresh listings).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Three test files: backend_test.py (Phases 0-3), test_offers.py (Phase 4), test_orders.py (Phase 5). Env for local runs: `export REACT_APP_BACKEND_URL=$(grep REACT_APP_BACKEND_URL /app/frontend/.env | cut -d= -f2) && export MONGO_URL=\"mongodb://localhost:27017\" && export DB_NAME=\"fashion_marketplace\"` then `cd /app/backend && python -m pytest tests/ -q --junitxml=/app/test_reports/pytest/pytest_results.xml`. Key Phase 5 invariants exercised: (a) order auto-creation is async via outbox relay — always POLL GET /api/orders after accept (~1-3s), (b) listing reservation is a SEPARATE async event (OrderCreated -> listings.handlers.reserve) — poll listing state or attempt-new-offer to confirm, (c) 409 on new offer to reserved listing returns error_code='LISTING_SOLD' NOT 'LISTING_NOT_AVAILABLE' — the assertion in test_orders accepts both, (d) outbox docs use field `event_type` (not `name`) and MONGO_URL/DB_NAME in /app/backend/.env are quoted so strip quotes before use. Frontend Orders.js is stable; when clicking orders-tab-seller wait ~2s for API refetch before asserting rows.",
+  "rca_of_the_issue": "N/A — no blocking issues in Phase 5. Two categories of expected transitional failures were resolved: (1) the 5 offer tests noted as failing in the review were fixed by switching the `listing` fixture in test_offers.py to _make_fresh_listing per test (root cause: seeded listing became Reserved after an accept in an earlier test); (2) initial test_orders drafts asserted LISTING_NOT_AVAILABLE and used `name` field for outbox — both corrected after reading the actual API/DB shape (LISTING_SOLD error_code, event_type field)."
+}

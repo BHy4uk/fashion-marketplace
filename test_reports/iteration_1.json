@@ -1,0 +1,69 @@
+{
+  "summary": "First testing iteration for ARCHIVE marketplace. Ran 19 pytest backend tests (18 pass) and Playwright frontend suite. Backend health/auth/listings/taxonomy all healthy. Two real bugs found: (1) brute-force lockout never triggers behind Kubernetes ingress because identifier keys on request.client.host which varies across ingress pod IPs; (2) Dashboard shows Archive button on Draft listings but backend rejects Draft→Archived transition producing 'Cannot move listing from Draft to Archived' toast. Frontend flows for Home, Shop (facets, sort, search), Listing Detail, Register/Login (invalid creds inline error), Sell (draft create) and Dashboard render and integrate correctly with the API. Register auto-logs-in via httpOnly cookies as expected.",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "POST /api/auth/login",
+        "issue": "Brute-force lockout does not trigger after 5+ failed attempts. RCA: identifier is '{request.client.host}:{email}' but behind Kubernetes ingress, request.client.host is the ingress pod IP which round-robins across multiple pods (observed 10.66.3.202 and 10.66.3.203 in identity_login_attempts collection). Counts split across per-pod keys and never reach MAX_FAILED=5. Fix: (a) key on X-Forwarded-For first IP when available, or (b) key on email only (recommended by spec since the review request says 'brute-force: 5+ failed attempts on same email/ip returns 429'), or (c) key on email OR ip separately and lock if either exceeds threshold.",
+        "priority": "HIGH"
+      }
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Dashboard",
+        "issue": "Archive button is shown for Draft listings, but backend rejects the archive transition from Draft with domain error 'Cannot move listing from Draft to Archived'. Either allow archive from Draft in domain (soft-delete regardless of state, matches spec: 'DELETE archives soft') or disable/hide the Archive button when state=Draft. Reproduced: register new user, create listing via /sell (missing image -> stays Draft), open /dashboard, click Archive on that Draft -> toast error, listing not archived.",
+        "selector": "[data-testid^='dashboard-archive-']",
+        "priority": "HIGH"
+      },
+      {
+        "component": "Sell page",
+        "issue": "When 'Publish listing' fails validation (missing image/category/etc) the listing IS created as Draft (POST /api/listings succeeds) but Publish fails with 422 and the user is left on /sell with no clear error message about which field is missing. A Draft is silently accumulated. Suggest: (a) surface the INCOMPLETE_LISTING detail as an inline error and (b) block form submission client-side when required fields are empty.",
+        "selector": "[data-testid='sell-submit']",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Sell page / Dashboard",
+        "issues": [
+          "Price rendering: dashboard shows '₴199,900' when the user typed 199900 into a field labelled 'PRICE (UAH)' with placeholder 'e.g. 4200'. This suggests the frontend does not multiply the entered UAH major-unit into minor units (kopiykas) before POSTing, contrary to the spec ('Prices are stored in MINOR units, amount 420000 = ₴4,200'). Verify: either the label is misleading or the conversion is missing. If the input truly expects kopiykas, the label should not say UAH."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Fix brute-force identifier so lockout works behind K8s ingress (key on email only or honour X-Forwarded-For).",
+    "Reconcile Draft->Archived: either allow soft-archive from Draft OR hide/disable Archive button on Draft listings in Dashboard UI.",
+    "Sell form: surface backend 422 INCOMPLETE_LISTING error and/or client-side validate required fields; today failed publishes silently pile up Draft listings.",
+    "Verify price minor-unit conversion in Sell flow — either convert UAH->kopiykas on submit or change label from 'PRICE (UAH)' to 'PRICE (kopiykas)'."
+  ],
+  "critical_code_review_comments": [
+    "identity/router.py L72: request.client.host is not reliable behind reverse proxies; use X-Forwarded-For or drop IP from the brute-force key.",
+    "listings/service.get_public treats Draft/Ready/Archived as 404 which is correct, but ensure Reserved is intentional (it's currently allowed).",
+    "listings/service.archive relies on domain.archive() which likely blocks Draft state. Given DELETE endpoint semantics of 'soft delete', consider always allowing archive/delete from any non-terminal state.",
+    "Frontend Sell.js: catch the API error and display INCOMPLETE_LISTING detail; currently the failed publish leaves the user stuck on /sell with a dangling Draft.",
+    "Auth.js uses data-testid='auth-name-input' for display_name field — review request referenced 'auth-display-name-input'. Test-only naming inconsistency, not a bug.",
+    "Small: sell page uses per-image testids sell-image-{n} (fine); consider also exposing a 'sell-add-image' remains consistent."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py"
+  ],
+  "success_rate": {
+    "backend": "94% (18/19 pytest)",
+    "frontend": "~85% (core flows work; 2 real UX bugs)"
+  },
+  "test_credentials": "Seed seller seller@archivemarket.co / Seller12345 and admin admin@archivemarket.co / Admin12345 both work.",
+  "seed_data_creation": "Tests create TEST_-prefixed users and one TEST_-prefixed listing (archived at end of lifecycle test). One extra Draft created by frontend flow (TEST_UI_*) remains in DB tied to a throwaway TEST_ui_* user.",
+  "retest_needed": true,
+  "main_agent_can_self_test": false,
+  "context_for_next_testing_agent": "Backend pytest suite lives at /app/backend/tests/backend_test.py. Run with REACT_APP_BACKEND_URL exported and `pytest --junitxml=/app/test_reports/pytest/pytest_results.xml`. The brute-force test currently fails until identity/router or service is patched. Frontend uses these testids that differ from review-request assumptions: register display-name field is `auth-name-input` (not auth-display-name-input); sell image inputs are `sell-image-{n}` with `sell-add-image`.",
+  "rca_of_the_issue": "Brute-force: /app/backend/modules/identity/router.py line 72 sets ip=request.client.host which in this Kubernetes preview environment is the ingress pod IP (round-robins 10.66.3.202/203). Identifier becomes '{podIP}:{email}'. Attempts get sharded across per-pod keys so identity_login_attempts.count never reaches MAX_FAILED=5. Verified by inspecting the collection after 8 failed attempts (two docs with count 3 and 5 under different pod IPs). Mitigation: derive real client IP from X-Forwarded-For header, or key by email only (recommended)."
+}

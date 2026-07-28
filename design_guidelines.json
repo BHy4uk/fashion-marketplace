@@ -1,0 +1,104 @@
+{
+  "theme": {
+    "mode": "light",
+    "rationale": "Light theme preferred for e-commerce to ensure clear product visibility and build trust. Fits the 'Swiss & High-Contrast' archetype for a premium, archival, and blueprint-like functional aesthetic."
+  },
+  "typography": {
+    "headings": {
+      "family": "'Outfit', sans-serif",
+      "weights": ["500", "700", "900"],
+      "guidelines": "Use tracking-tight for all headings above text-2xl. Use bold or black weights for editorial impact. 'Inter' is banned for headings."
+    },
+    "body": {
+      "family": "'IBM Plex Sans', sans-serif",
+      "weights": ["400", "500", "600"],
+      "guidelines": "Clean, technical, highly readable for dense attribute data and product descriptions."
+    },
+    "labels": {
+      "family": "'IBM Plex Sans', sans-serif",
+      "guidelines": "Uppercase, text-xs, tracking-[0.2em] for overlines, tags, and small utility text."
+    }
+  },
+  "colors": {
+    "background": "#FAFAFA",
+    "surface": "#FFFFFF",
+    "border": "#E5E5E5",
+    "text_primary": "#0A0A0A",
+    "text_secondary": "#525252",
+    "primary": "#FF4500",
+    "primary_hover": "#CC3700",
+    "success": "#008A00",
+    "error": "#E50000",
+    "guidelines": "Follow the Swiss & High-Contrast archetype. 95% of UI is monochrome. Color exists only to guide action (Signal Orange for 'Buy Now' / 'Make Offer'). Never use pure black or pure gray; tint with a subtle warmth."
+  },
+  "visual_enhancers": {
+    "surfaces": "Grid Borders (The 'Technical' Look). Expose the skeleton with visible grid borders. Use flat solid surfaces. Avoid glassmorphism entirely to maintain a raw, transparent marketplace feel.",
+    "borders": "1px solid border-border everywhere. Sharp corners (rounded-none or max rounded-sm).",
+    "shadows": "No soft shadows. Use solid, harsh shadows (e.g., 2px solid black offset) or none at all to maintain the archival/blueprint aesthetic."
+  },
+  "components": {
+    "navigation": "Solid white background with 1px bottom border. Search bar must be the focal point and highly visible. Do not hide desktop links behind a hamburger menu.",
+    "product_card": "Cardless UI. Image container with a 1px border. Product info directly below. No background on the info section. High contrast text.",
+    "buttons": "Sharp corners. Primary CTA uses Signal Orange. Secondary CTA uses outline (1px solid black) with transparent background, hover black background with white text.",
+    "inputs": "Shadcn inputs customized to have sharp corners (rounded-none) and 1px solid black border on focus.",
+    "badges": "Square corners, text-xs, uppercase, solid background for condition (e.g., 'BRAND NEW', 'GENTLY USED')."
+  },
+  "grids_and_layouts": {
+    "general": "High Density Grid (Mode B) for discovery and product lists. Use gap-4 or gap-6. Every pixel must be utilized.",
+    "spacing": "Generous spacing for layout containers (p-8 to p-12). Dense spacing for data and attributes to reflect 'Information clarity, functional beauty'.",
+    "product_page": "Split layout for desktop: 60% sticky image gallery (left) / 40% scrollable info and checkout actions (right)."
+  },
+  "motion": {
+    "guidelines": "Minimalist. Micro-interactions for feedback. Hover on product images scales image slightly (1.05) within hidden overflow container. Fast, snappy transitions (150ms)."
+  },
+  "accessibility": {
+    "guidelines": "Ensure minimum 4.5:1 contrast ratio. Use data-testid attributes for all interactive elements. Support prefers-reduced-motion."
+  },
+  "media": {
+    "image_urls": {
+      "hero_banners": [
+        {
+          "url": "https://images.unsplash.com/photo-1624353656309-8be1a6c457be?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NjZ8MHwxfHNlYXJjaHwzfHxzdHJlZXR3ZWFyJTIwZmFzaGlvbiUyMHBvcnRyYWl0fGVufDB8fHx8MTc4NTI1ODU1MXww&ixlib=rb-4.1.0&q=85",
+          "description": "Streetwear fashion portrait (Woman in orange/white)"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1532332248682-206cc786359f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NjZ8MHwxfHNlYXJjaHwyfHxzdHJlZXR3ZWFyJTIwZmFzaGlvbiUyMHBvcnRyYWl0fGVufDB8fHx8MTc4NTI1ODU1MXww&ixlib=rb-4.1.0&q=85",
+          "description": "Streetwear fashion portrait (Man in city)"
+        }
+      ],
+      "products": [
+        {
+          "url": "https://images.unsplash.com/photo-1600185365778-7875a359b924?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjV8MHwxfHNlYXJjaHwyfHxzbmVha2VycyUyMHNob2VzJTIwaXNvbGF0ZWR8ZW58MHx8fHwxNzg1MjU4NTUxfDA&ixlib=rb-4.1.0&q=85",
+          "description": "White/Red Nike Sneaker"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1544441892-83af2e53ea48?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjV8MHwxfHNlYXJjaHw0fHxzbmVha2VycyUyMHNob2VzJTIwaXNvbGF0ZWR8ZW58MHx8fHwxNzg1MjU4NTUxfDA&ixlib=rb-4.1.0&q=85",
+          "description": "Gray Low-top Sneakers"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1705909237050-7a7625b47fac?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODh8MHwxfHNlYXJjaHwyfHxkZXNpZ25lciUyMGxlYXRoZXIlMjBiYWd8ZW58MHx8fHwxNzg1MjU4NTUxfDA&ixlib=rb-4.1.0&q=85",
+          "description": "Black Designer Leather Bag"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1605733513597-a8f8341084e6?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODh8MHwxfHNlYXJjaHwxfHxkZXNpZ25lciUyMGxlYXRoZXIlMjBiYWd8ZW58MHx8fHwxNzg1MjU4NTUxfDA&ixlib=rb-4.1.0&q=85",
+          "description": "Black Leather Handbag on White Table"
+        }
+      ]
+    }
+  },
+  "libraries": {
+    "icons": "@phosphor-icons/react",
+    "animation": "framer-motion",
+    "toast": "sonner"
+  },
+  "universal_guidelines_for_main_agent": [
+    "Prioritize using pre-existing components from src/components/ui when applicable.",
+    "Do not apply universal transitions like `transition: all`. Target specific properties.",
+    "Do not center align the app container in CSS.",
+    "Use modern, sharp/technical styles with relevant interaction animations.",
+    "Never use AI assistant emoji characters for icons.",
+    "Ensure layered design elements with clear z-index hierarchy.",
+    "For toasts, strictly use 'sonner'."
+  ],
+  "instructions_to_main_agent": "Implement a high-contrast, technical grid aesthetic. Emphasize functional clarity over decorative elements. Ensure all UI components follow the 'Cardless' and 'Grid Borders' approach. Prioritize the search experience. Build a mobile-first responsive design. For React components, ensure direct children are used in grid layouts. Every interactive element must have a data-testid. Do not use transparent backgrounds under text-heavy components."
+}

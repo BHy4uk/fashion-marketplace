@@ -1,0 +1,49 @@
+{
+  "summary": "Phase 6 (DOMAIN-006 Payments + Escrow) backend + frontend testing. Wrote /app/backend/tests/test_payments.py (21 tests) covering payment domain state machine, provider abstraction (Sandbox + LiqPay adapter unit-level with sig roundtrip + tampered rejection + build_provider selection), API checkout with immediate capture-into-escrow (sandbox), order->Paid choreography via PaymentCaptured event, buyer-only authorization (403 for seller/third party), 404 for missing order, idempotent double-checkout, service-level schedule_release_for_order + release_due sweeper, refund_for_order no-op + captured refund, and cancel-without-payment. Regression: full pytest suite = 64 passed, 3 failed (all in test_payments; all real Phase-6 bugs — see below). All 46 previously passing Phases 0-5 tests still green. Frontend E2E via Playwright confirmed the buyer /orders Pay-now flow with sandbox provider: click order-pay-<id> -> 'Payment captured — funds held in escrow' toast -> status badge flips to Paid on reload -> Pay/Cancel buttons removed. Seller /orders Sales tab shows the same order as Paid with 'Platform fee: ₴150 · You receive ₴1,350' breakdown.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "POST /api/payments/checkout", "issue": "Paying an order that is already Paid returns 409 ORDER_NOT_PAYABLE instead of idempotent success. modules/payments/service.py checks snap.status != 'AwaitingPayment' BEFORE looking up existing captured payment; spec (review request) requires idempotent success returning the existing Captured payment_id when checkout is called on an already-Paid order. Fix: reorder the checks — first fetch repo.by_order(order_id); if existing.status in {Captured, Settled}, return that early; only then enforce AwaitingPayment for the create path.", "priority": "HIGH"},
+      {"endpoint": "PaymentService.release_due / Payment.is_release_due", "issue": "TypeError: can't compare offset-naive and offset-aware datetimes. Payments are read back from Mongo with a naive release_at (Mongo strips tz), but domain.utc_now() returns tz-aware datetime, so is_release_due() raises inside the sweeper loop. The Mongo find() filter using $lte works (Motor normalizes), but the per-doc guard fails, so NO payment is ever released via the sweeper. Fix: normalize release_at on load (repo _from_doc should attach tzinfo=timezone.utc if naive) OR compare using naive UTC consistently.", "priority": "CRITICAL"}
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Orders (Purchases)", "issues": ["Status text renders as 'AwaitingPayment' / 'Paid' with no spacing — the AwaitingPayment badge is a solid orange chip which is fine, but the status_history breadcrumb 'Created → AwaitingPayment → Paid' shows 'AwaitingPayment' as one token. Minor readability; consider inserting a space ('Awaiting Payment')."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_payments.py",
+    "/app/backend/tests/test_orders.py",
+    "/app/backend/tests/test_offers.py",
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Fix idempotent double-pay on Paid order (payments/service.py checkout ordering)",
+    "Fix tz-naive vs tz-aware datetime bug in Payment.is_release_due / repository load — currently the escrow sweeper CANNOT release any payment once release_at is set; this breaks the core Phase-6 feature."
+  ],
+  "critical_code_review_comments": [
+    "modules/payments/service.py PaymentService.checkout(): status guard runs before idempotency lookup, causing 409 on already-Paid orders even though a captured payment exists. Reorder to prefer idempotency.",
+    "modules/payments/repository.py _from_doc(): release_at is loaded as-is from Mongo (naive datetime); domain.is_release_due compares against tz-aware utc_now() -> TypeError. Coerce to UTC-aware on read (also for audit.created_at/updated_at) or make utc_now naive-consistent.",
+    "modules/payments/service.py release_due() catches DomainError silently on repo.save; a CONCURRENCY_CONFLICT means a payment was raced — should at least log so operators know why payouts silently didn't happen.",
+    "modules/payments/service.py handle_webhook() accepts hold_completion/success/subscribed as capture triggers, but the LiqPay 'wait_secure' / 'wait_accept' statuses are not handled — real LiqPay production calls will drop these. Consider adding an explicit unknown-status branch that logs + no-ops.",
+    "modules/payments/provider.py LiqPayProvider assumes hold=True by default and the response 'auto_settle' is False, but there is no path to VOID or CAPTURE the hold from a UI action — capture_hold/void_hold exist but no service method calls them. Currently only the (async) webhook can settle a LiqPay hold — worth documenting in the ADR.",
+    "modules/orders/service.py mark_paid ignores orders not in AwaitingPayment (idempotent) but silently — no audit. If a race causes two PaymentCaptured events, the second is dropped without any trace.",
+    "modules/payments/router.py exposes /webhook/liqpay unauthenticated — correct (signed callback) but the signature verification happens inside PaymentService via provider.verify_callback which raises ValueError, NOT DomainError. That currently surfaces as a 500 to LiqPay. Wrap in a try/except to return 400.",
+    "modules/payments/service.py checkout() uses f'{snap.total / 100:.2f}' — for currencies with 0 or 3 decimal places (e.g., JPY, KWD) this is wrong. OK for UAH-only MVP but flag for i18n.",
+    "modules/payments/service.py release_due() finds by status/held/release_at filter and then re-loads each via by_id — this is O(2N) queries. Fine for MVP volume but consider a projection or batch."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_payments.py (created — 21 tests, 18 passing, 3 failures reveal bugs above)"
+  ],
+  "success_rate": {"backend": "95.5% (64/67 pytest — 3 failures are new Phase-6 bugs, all Phases 0-5 = 46/46 green)", "frontend": "100% on Phase 6 pay flow (Pay now toast + status flip + button removal + seller Sales view breakdown all verified)"},
+  "test_credentials": "Seed seller seller@archivemarket.co / Seller12345, admin admin@archivemarket.co / Admin12345. Buyers registered with TEST_pay_/TEST_third_/TEST_e2e_pay_ prefixes.",
+  "seed_data_creation": "Each backend test creates a fresh TEST_pay_* listing (many will accumulate as Reserved/Canceled/Refunded); the frontend E2E creates one TEST_e2e_pay_* listing per run. No cleanup was necessary for this iteration.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Test files: backend_test.py (Phases 0-3), test_offers.py (Phase 4), test_orders.py (Phase 5), test_payments.py (Phase 6). Run from /app/backend with `export MONGO_URL='mongodb://localhost:27017' DB_NAME='fashion_marketplace' REACT_APP_BACKEND_URL=$(grep REACT_APP_BACKEND_URL /app/frontend/.env | cut -d= -f2) && python -m pytest tests/ -q`. Phase 6 needs PAYMENT_PROVIDER=sandbox (already in /app/backend/.env) and PAYOUT_HOLD_HOURS=72. Two known bugs to retest after fix: (1) test_pay_after_paid_returns_existing — checkout must return existing Captured payment on an already-Paid order, not 409 ORDER_NOT_PAYABLE; (2) test_schedule_release_and_release_due / test_sweeper_ignores_payments_without_release_at — Payment.is_release_due crashes on naive datetime read from Mongo. NOTE: to reach the sweeper test, my test forces release_at into the past by directly updating Mongo then calling release_due(); after the tz fix that path must return 1 released. Frontend testing tip: APIRequestContext SHARES cookies with the browser context — always call page.context.clear_cookies() before UI login if you did any API logins first, otherwise you'll be logged in as the wrong user.",
+  "rca_of_the_issue": "Bug 1 (already-Paid checkout 409): service.py PaymentService.checkout enforces snap.status == 'AwaitingPayment' before checking if a captured payment already exists for the order. Once the outbox relay marks the order Paid (via PaymentCaptured -> mark_paid), a legitimate retry (e.g., user double-tap on Pay button before UI refresh) returns 409 instead of the idempotent Captured response the spec requires. Repro: create order -> checkout -> wait for Paid -> checkout again -> observe 409 ORDER_NOT_PAYABLE. Fix: `existing = await self.repo.by_order(order_id); if existing and existing.status in ('Captured','Settled'): return {payment_id, status}` BEFORE the AwaitingPayment guard. Bug 2 (naive vs aware datetime): Mongo does not preserve tzinfo on datetimes retrieved via Motor. domain.utc_now() returns datetime.now(timezone.utc). is_release_due does `now >= self.release_at` where self.release_at is naive after a round-trip, raising TypeError. Repro: capture a payment via checkout -> call PaymentService.schedule_release_for_order -> call PaymentService.release_due() -> TypeError. Impact: escrow sweeper NEVER releases any real payment. Fix: in repository._from_doc coerce datetimes to UTC-aware: `release_at = d.get('release_at'); if release_at and release_at.tzinfo is None: release_at = release_at.replace(tzinfo=timezone.utc)`."
+}
