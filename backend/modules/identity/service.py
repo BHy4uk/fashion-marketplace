@@ -49,7 +49,9 @@ class IdentityService:
             {"$inc": {"count": 1}, "$set": {"last": utc_now()}}, upsert=True)
 
     async def login(self, email: str, password: str, ip: str) -> User:
-        identifier = f"{ip}:{email.strip().lower()}"
+        # Key lockout on email: behind a reverse proxy/ingress the observed client
+        # IP is the proxy pod IP and round-robins, so an IP-based key never trips.
+        identifier = email.strip().lower()
         await self._check_lockout(identifier)
         user = await self.repo.by_email(email)
         if not user or not verify_password(password, user.password_hash):

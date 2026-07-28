@@ -30,12 +30,18 @@ export default function Sell() {
   const submit = async (e) => {
     e.preventDefault();
     setError("");
+    const photos = images.filter((u) => u.trim());
+    if (photos.length === 0) {
+      setError("Add at least one photo before publishing.");
+      toast.error("Add at least one photo");
+      return;
+    }
     setBusy(true);
     try {
       const payload = {
         ...form,
         price_amount: Math.round(parseFloat(form.price_amount) * 100),
-        images: images.filter((u) => u.trim()).map((u) => ({ url: u.trim() })),
+        images: photos.map((u) => ({ url: u.trim() })),
       };
       const { data } = await api.post("/listings", payload);
       await api.post(`/listings/${data.listing_id}/publish`);

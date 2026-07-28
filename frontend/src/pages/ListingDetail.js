@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Tag, ShieldCheck, Star } from "@phosphor-icons/react";
 import { toast } from "sonner";
-import api, { formatPrice, apiError } from "../lib/api";
+import api, { formatPrice } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { CONDITION_LABEL } from "../components/ProductCard";
 

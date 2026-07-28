@@ -83,7 +83,7 @@ async def change_price(listing_id: str, req: PriceReq, user: dict = Depends(get_
 
 
 @router.delete("/{listing_id}")
-async def archive(listing_id: str, user: dict = Depends(get_current_user),
-                  db: AsyncIOMotorDatabase = Depends(get_db)):
-    l = await ListingService(db).archive(listing_id, user["_id"])
+async def remove(listing_id: str, user: dict = Depends(get_current_user),
+                 db: AsyncIOMotorDatabase = Depends(get_db)):
+    l = await ListingService(db).remove(listing_id, user["_id"])
     return {"listing_id": l.id, "state": l.state}

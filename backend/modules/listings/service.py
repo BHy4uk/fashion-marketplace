@@ -54,6 +54,14 @@ class ListingService:
         await self.repo.save(l)
         return l
 
+    async def remove(self, listing_id: str, seller_id: str) -> Listing:
+        """DELETE = soft delete (BR-016). Valid from Draft/Ready/Published/Archived;
+        blocked from Reserved/Sold (active order or terminal)."""
+        l = await self._owned(listing_id, seller_id)
+        l.soft_delete()
+        await self.repo.save(l)
+        return l
+
     async def archive(self, listing_id: str, seller_id: str) -> Listing:
         l = await self._owned(listing_id, seller_id)
         l.archive()

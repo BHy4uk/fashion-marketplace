@@ -20,10 +20,10 @@ export default function Dashboard() {
   };
   useEffect(load, []);
 
-  const archive = async (id) => {
+  const remove = async (id) => {
     try {
       await api.delete(`/listings/${id}`);
-      toast.success("Listing archived");
+      toast.success("Listing removed");
       load();
     } catch (e) {
       toast.error(apiError(e));
@@ -68,9 +68,9 @@ export default function Dashboard() {
                 <div className="product-title">{l.title}</div>
                 <div className="row" style={{ justifyContent: "space-between" }}>
                   <span className="product-price">{formatPrice(l.price)}</span>
-                  {["Published", "Draft", "Reserved"].includes(l.state) && (
-                    <button className="btn btn-sm" onClick={() => archive(l.id)}
-                      data-testid={`dashboard-archive-${l.id}`}>Archive</button>
+                  {["Published", "Draft", "Ready", "Archived"].includes(l.state) && (
+                    <button className="btn btn-sm" onClick={() => remove(l.id)}
+                      data-testid={`dashboard-archive-${l.id}`}>Remove</button>
                   )}
                 </div>
               </div>
