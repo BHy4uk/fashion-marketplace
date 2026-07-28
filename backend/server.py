@@ -1,0 +1,77 @@
+"""Fashion Marketplace — Modular Monolith API host.
+
+Assembles all module routers (each module keeps its own domain/application/
+infrastructure/api layers). Wires the transactional-outbox relay and a
+notifications-lite event handler at startup. See docs/adr/0001.
+"""
+from dotenv import load_dotenv
+
+load_dotenv()
+
+import asyncio
+import logging
+import os
+
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+from buildingblocks.domain import DomainError
+from buildingblocks.mongo import get_db
+from buildingblocks import outbox
+from modules.administration.router import router as taxonomy_router
+from modules.identity.router import auth_router, users_router
+from modules.listings.router import router as listings_router
+from seed import ensure_indexes, seed_admin_and_demo, seed_taxonomy
+
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger("app")
+
+app = FastAPI(title="Fashion Marketplace API", version="0.1.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[o.strip() for o in
+                   os.environ.get("CORS_ORIGINS", os.environ.get("FRONTEND_URL", "*")).split(",")],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.exception_handler(DomainError)
+async def domain_error_handler(_: Request, exc: DomainError):
+    return JSONResponse(status_code=exc.http_status,
+                        content={"error_code": exc.code, "detail": exc.message})
+
+
+@app.get("/api/health")
+async def health():
+    return {"status": "ok", "service": "fashion-marketplace"}
+
+
+# ---- Notifications-lite: consume domain events from the outbox (demonstrates
+# event-driven cross-domain communication; a full Notifications module is Phase 9). ----
+async def _on_event(doc: dict):
+    log.info("[event] %s aggregate=%s", doc["event_type"], doc["aggregate_id"])
+
+
+for _evt in ("UserRegistered", "ListingPublished", "OfferAccepted", "OrderCreated",
+             "PaymentCaptured", "ShipmentDelivered", "ReviewPublished"):
+    outbox.subscribe(_evt, _on_event)
+
+
+app.include_router(auth_router)
+app.include_router(users_router)
+app.include_router(listings_router)
+app.include_router(taxonomy_router)
+
+
+@app.on_event("startup")
+async def startup():
+    db = get_db()
+    await ensure_indexes(db)
+    await seed_taxonomy(db)
+    await seed_admin_and_demo(db)
+    asyncio.create_task(outbox.run_relay(db))
+    log.info("startup complete")
