@@ -126,8 +126,37 @@ Set in backend/.env: SHIPPING_PROVIDER=novaposhta, NOVAPOSHTA_API_KEY, and sende
 Recipient refs (city_ref/recipient_ref/address_ref/contact_ref/phone) passed per-dispatch in to_address.
 
 ## Next phases (post Phase 7)
-- Phase 8 Reviews (DOMAIN-008, feeds Identity reputation) — now unblocked (orders reach Completed).
+- Phase 8 Reviews (DOMAIN-008, feeds Identity reputation) — DONE (see below).
 - Phase 9 Messaging (WebSockets). Phase 10 Notifications. Phase 11 Moderation+Admin UI. Phase 12 AI+Analytics.
+
+## Update 2026-06 (Phase 8 REVIEWS + reputation choreography) — COMPLETE & TESTED (101/101)
+- Review aggregate (DOMAIN-008): tied to exactly one Completed order; one Author + one Recipient
+  (both order participants); publish-immediately (Draft skipped, Grailed-style); immutable after
+  publish (INV-006); Rating 1–5 + optional comment (<=2000). Lifecycle Published<->Hidden->Removed
+  (Removed terminal, kept for audit INV-007). Single immutable ReviewResponse child (§10).
+- Both directions (buyer->seller AND seller->buyer). Duplicate prevention via unique compound index
+  (order_id, author_id, recipient_id) => deterministic failure under concurrency (INV-005, §19).
+- Reputation choreography (Identity OWNS reputation, Q7/§11): Review.create emits ReviewPublished
+  (rating + recipient) -> Identity.on_review_published applies it to the recipient's reputation.
+  IDEMPOTENT for at-least-once delivery via unique per-review guard (identity_applied_reviews);
+  redelivered events never double-count. Reviews NEVER writes identity_users.
+- Events: ReviewPublished / ReviewResponseCreated / ReviewHidden / ReviewUnhidden / ReviewRemoved.
+- Reads Orders via OrderContract + Identity via IdentityContract only (no cross-module DB).
+- APIs: POST /api/reviews (participant, completed order); GET /api/reviews/eligibility/{order_id};
+  GET /api/reviews/user/{user_id} (public, published only + reputation summary);
+  GET /api/reviews/order/{order_id} (participants; staff see all incl. removed);
+  POST /api/reviews/{id}/response (recipient only, once);
+  POST /api/reviews/{id}/hide|unhide|remove (moderator/admin, require_roles).
+- Frontend: /orders shows a star-rating ReviewForm on Completed orders (both boxes) with eligibility
+  gating + "You reviewed this transaction" state. Seller reputation on ListingDetail reflects updates.
+- Config: none new. Tests: 101/101 pytest (added test_reviews.py: 17 — aggregate lifecycle, rating
+  validation, eligibility, duplicate prevention, both-directions, responses, moderation, reputation update).
+
+## Carried technical debt (Phase 8)
+- Reputation is applied on publish but NOT reversed when a review is later Hidden/Removed (MVP;
+  a reputation reconciler is future work). No review pagination. Multi-dimension ratings (communication/
+  shipping/accuracy/packaging) deferred (§8 future). Review UI wired to the tested API contract and
+  compiles clean, but not yet browser click-tested end-to-end. Search still coupled inside Listings.
 
 ## Carried technical debt (Phase 7)
 - Shipment: no pagination; single parcel/seat; buyer shipping address not collected at checkout

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import api, { formatPrice, apiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
+import ReviewForm from "../components/ReviewForm";
 
 const STATUS_BADGE = {
   AwaitingPayment: "badge-primary", Paid: "badge-solid", PreparingShipment: "badge-solid",
@@ -161,6 +162,21 @@ export default function Orders() {
                   {o.status_history.map((h, i) => (
                     <span key={i}>{i > 0 && " → "}{humanize(h.to_status)}</span>
                   ))}
+                </div>
+              )}
+              {o.status === "Completed" && reviews[o.id]?.is_participant && (
+                <div className="mt-16" data-testid={`order-review-block-${o.id}`}>
+                  {reviews[o.id].already_reviewed ? (
+                    <div className="hint" data-testid={`order-reviewed-${o.id}`}>
+                      ★ You reviewed this transaction
+                    </div>
+                  ) : (
+                    <ReviewForm
+                      orderId={o.id}
+                      recipientName={box === "buyer" ? "the seller" : "the buyer"}
+                      onDone={load}
+                    />
+                  )}
                 </div>
               )}
             </div>

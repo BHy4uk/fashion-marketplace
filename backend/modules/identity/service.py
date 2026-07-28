@@ -12,6 +12,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from buildingblocks.domain import DomainError, utc_now
 from buildingblocks.security import (create_access_token, create_refresh_token,
                                      decode_token, hash_password, verify_password)
+from pymongo.errors import DuplicateKeyError
 
 from .domain import User
 from .repository import UserRepository
@@ -67,6 +68,20 @@ class IdentityService:
         if not user:
             raise DomainError("USER_NOT_FOUND", "User not found", 404)
         return user
+
+    async def apply_review(self, review_id: str, user_id: str, rating: int) -> None:
+        """React to a ReviewPublished event: fold the rating into the recipient's
+        reputation (Identity OWNS reputation). Idempotent for at-least-once delivery
+        via a unique per-review guard so a redelivered event never double-counts."""
+        try:
+            await self.db.identity_applied_reviews.insert_one(
+                {"_id": review_id, "user_id": user_id, "at": utc_now()})
+        except DuplicateKeyError:
+            return  # already applied
+        user = await self.repo.by_id(user_id)
+        if user:
+            user.apply_review(rating)
+            await self.repo.save(user)
 
     def tokens(self, user: User) -> tuple[str, str]:
         return (create_access_token(user.id, user.email, user.role),

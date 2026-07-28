@@ -34,6 +34,8 @@ from modules.payments.service import PaymentService
 from modules.shipping.router import router as shipping_router
 from modules.shipping import handlers as shipping_handlers
 from modules.shipping.service import ShippingService
+from modules.reviews.router import router as reviews_router
+from modules.identity import handlers as identity_handlers
 from seed import ensure_indexes, seed_admin_and_demo, seed_taxonomy
 
 logging.basicConfig(level=logging.INFO)
@@ -81,6 +83,7 @@ app.include_router(offers_router)
 app.include_router(orders_router)
 app.include_router(payments_router)
 app.include_router(shipping_router)
+app.include_router(reviews_router)
 app.include_router(taxonomy_router)
 
 # Register cross-domain event subscribers (choreography). Order matters only for
@@ -90,6 +93,7 @@ listing_handlers.register()
 offer_handlers.register()
 payment_handlers.register()
 shipping_handlers.register()
+identity_handlers.register()
 
 
 async def _offer_expiration_sweeper(db):
