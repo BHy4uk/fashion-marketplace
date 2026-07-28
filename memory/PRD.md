@@ -92,6 +92,44 @@ Set in backend/.env: PAYMENT_PROVIDER=liqpay, LIQPAY_PUBLIC_KEY, LIQPAY_PRIVATE_
 from LiqPay dashboard), LIQPAY_SANDBOX=true, BACKEND_PUBLIC_URL=<preview/prod url>. Webhook: /api/payments/webhook/liqpay.
 
 ## Next phases
-- Phase 7 Shipping (DOMAIN-007, Nova Poshta via IShippingProvider) -> drives Order Paid->...->Delivered->Completed,
-  which finally activates escrow release end-to-end.
 - Phase 8 Reviews (feeds Identity reputation), Phase 9 Messaging (WebSockets).
+
+## Update 2026-06 (Phase 7 SHIPPING + closed escrow loop) — COMPLETE & TESTED (84/84)
+- Shipment aggregate (DOMAIN-007): carrier-AGNOSTIC fulfilment lifecycle
+  Pending->LabelCreated->Dispatched->InTransit->Delivered (+Returned/Canceled); append-only
+  normalized TrackingEvent history; optimistic concurrency + embedded-events atomic outbox;
+  unique order_id (one shipment/order).
+- IShippingProvider port + SandboxShippingProvider (default, no keys, deterministic) +
+  NovaPoshtaProvider (real API v2.0: InternetDocument.save for waybill, TrackingDocument.
+  getStatusDocuments for tracking, InternetDocument.delete for cancel; StatusCode->normalized
+  status map). Adding UPS/DHL/FedEx/Meest/Ukrposhta = new adapter only, no domain change.
+  Selected via SHIPPING_PROVIDER + NOVAPOSHTA_API_KEY(+sender refs) env.
+- Choreography (Orders holds ZERO carrier logic): OrderPaid -> Shipping.create_for_order
+  (Shipment Pending) -> ShipmentCreated -> Order Paid->PreparingShipment. Seller POST
+  /dispatch -> provider waybill + ShipmentDispatched -> Order PreparingShipment->Shipped.
+  Buyer POST /confirm-delivery (or carrier tracking sweep) -> ShipmentDelivered ->
+  Order Shipped->Delivered->Completed -> OrderCompleted -> Payments.schedule_release.
+  ESCROW LOOP NOW CLOSES END-TO-END (payout release_at set on completion).
+- Shipping events: ShipmentCreated/LabelCreated/Dispatched/InTransit/Delivered/Returned/Canceled.
+- APIs: GET /api/shipments/order/{order_id}; POST /api/shipments/{id}/dispatch (seller);
+  POST /api/shipments/{id}/track; POST /api/shipments/{id}/confirm-delivery (buyer).
+- Background tracking sweeper (120s) polls carrier for in-flight shipments (auto-delivery for
+  real carriers). Reads Orders ONLY via OrderContract. Shipping NEVER mutates Orders.
+- Frontend /orders: seller "Dispatch shipment", buyer "Confirm delivery", carrier+tracking#+status line.
+- Config: SHIPPING_PROVIDER=sandbox (default), NOVAPOSHTA_* placeholders in backend/.env.
+- Tests: 84/84 pytest (added test_shipping.py: 17 tests — aggregate SM, provider abstraction,
+  status mapping, full escrow-loop choreography, authz).
+
+## To activate real Nova Poshta (Phase 7 go-live)
+Set in backend/.env: SHIPPING_PROVIDER=novaposhta, NOVAPOSHTA_API_KEY, and sender refs
+(NOVAPOSHTA_SENDER_CITY/REF/ADDRESS/CONTACT/PHONE from the NP business account + directory APIs).
+Recipient refs (city_ref/recipient_ref/address_ref/contact_ref/phone) passed per-dispatch in to_address.
+
+## Next phases (post Phase 7)
+- Phase 8 Reviews (DOMAIN-008, feeds Identity reputation) — now unblocked (orders reach Completed).
+- Phase 9 Messaging (WebSockets). Phase 10 Notifications. Phase 11 Moderation+Admin UI. Phase 12 AI+Analytics.
+
+## Carried technical debt (Phase 7)
+- Shipment: no pagination; single parcel/seat; buyer shipping address not collected at checkout
+  (dispatch accepts optional to_address/parcel). Sandbox delivery requires buyer confirmation
+  (real carriers auto-deliver via sweeper). Search still coupled inside Listings.

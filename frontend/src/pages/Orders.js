@@ -16,11 +16,25 @@ export default function Orders() {
   const { user } = useAuth();
   const [box, setBox] = useState("buyer");
   const [items, setItems] = useState([]);
+  const [shipments, setShipments] = useState({});
   const [loading, setLoading] = useState(true);
+
+  const SHIPPED_STATES = ["Paid", "PreparingShipment", "Shipped", "Delivered", "Completed"];
 
   const load = useCallback(() => {
     setLoading(true);
-    api.get(`/orders?box=${box}`).then((r) => setItems(r.data.items)).finally(() => setLoading(false));
+    api.get(`/orders?box=${box}`).then(async (r) => {
+      setItems(r.data.items);
+      const relevant = r.data.items.filter((o) => SHIPPED_STATES.includes(o.status));
+      const map = {};
+      await Promise.all(relevant.map(async (o) => {
+        try {
+          const res = await api.get(`/shipments/order/${o.id}`);
+          if (res.data.shipment) map[o.id] = res.data.shipment;
+        } catch (_) { /* no shipment yet */ }
+      }));
+      setShipments(map);
+    }).finally(() => setLoading(false));
   }, [box]);
 
   useEffect(load, [load]);
@@ -54,6 +68,26 @@ export default function Orders() {
     try {
       await api.post(`/orders/${id}/cancel`);
       toast.success("Order canceled");
+      load();
+    } catch (e) {
+      toast.error(apiError(e));
+    }
+  };
+
+  const dispatchShipment = async (shipmentId) => {
+    try {
+      await api.post(`/shipments/${shipmentId}/dispatch`, {});
+      toast.success("Shipment dispatched — tracking is now active");
+      load();
+    } catch (e) {
+      toast.error(apiError(e));
+    }
+  };
+
+  const confirmDelivery = async (shipmentId) => {
+    try {
+      await api.post(`/shipments/${shipmentId}/confirm-delivery`);
+      toast.success("Delivery confirmed — escrow payout scheduled to the seller");
       load();
     } catch (e) {
       toast.error(apiError(e));
@@ -105,8 +139,23 @@ export default function Orders() {
                         data-testid={`order-cancel-${o.id}`}>Cancel</button>
                     </>
                   )}
+                  {box === "seller" && o.status === "PreparingShipment" && shipments[o.id] && (
+                    <button className="btn btn-primary btn-sm"
+                      onClick={() => dispatchShipment(shipments[o.id].id)}
+                      data-testid={`order-dispatch-${o.id}`}>Dispatch shipment</button>
+                  )}
+                  {box === "buyer" && o.status === "Shipped" && shipments[o.id] && (
+                    <button className="btn btn-primary btn-sm"
+                      onClick={() => confirmDelivery(shipments[o.id].id)}
+                      data-testid={`order-confirm-delivery-${o.id}`}>Confirm delivery</button>
+                  )}
                 </div>
               </div>
+              {shipments[o.id]?.tracking_number && (
+                <div className="hint mt-16" data-testid={`order-tracking-${o.id}`}>
+                  {shipments[o.id].carrier} · {shipments[o.id].tracking_number} · {humanize(shipments[o.id].status)}
+                </div>
+              )}
               {o.status_history?.length > 0 && (
                 <div className="hint mt-16" data-testid={`order-history-${o.id}`}>
                   {o.status_history.map((h, i) => (
