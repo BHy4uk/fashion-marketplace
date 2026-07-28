@@ -28,6 +28,8 @@ export default function Offers() {
 
   useEffect(load, [load]);
 
+  if (!user) return null;
+
   const act = async (id, verb, body) => {
     try {
       await api.post(`/offers/${id}/${verb}`, body || {});

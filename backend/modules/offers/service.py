@@ -68,7 +68,13 @@ class OfferService:
         offer = await self._load_participant(offer_id, user_id)
         offer.accept(user_id)                                        # validates turn/state/expiry
         await self.repo.acquire_acceptance_lock(offer)               # atomic exactly-one (INV-005)
-        await self.repo.save(offer)                                  # then persist + emit OfferAccepted
+        try:
+            await self.repo.save(offer)                              # then persist + emit OfferAccepted
+        except Exception:
+            # Compensation: never leave a lock without a persisted accepted offer
+            # (would permanently block the listing and the Orders hand-off).
+            await self.repo.release_acceptance_lock(offer.listing_id, offer.id)
+            raise
         return offer
 
     async def reject(self, offer_id: str, user_id: str) -> Offer:

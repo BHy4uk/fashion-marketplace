@@ -78,3 +78,8 @@ class OfferRepository:
         except DuplicateKeyError:
             raise DomainError("OFFER_ALREADY_ACCEPTED",
                               "Another offer for this listing has already been accepted", 409)
+
+    async def release_acceptance_lock(self, listing_id: str, offer_id: str) -> None:
+        """Compensation: release the lock if persistence fails after acquisition,
+        so the listing is not permanently blocked. Only removes our own lock."""
+        await self.db[ACCEPTANCE].delete_one({"_id": listing_id, "offer_id": offer_id})
