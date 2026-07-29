@@ -35,6 +35,7 @@ class AIProvider(ABC):
 class SandboxAIProvider(AIProvider):
     """No-network, deterministic. Same input -> same output (reproducible tests)."""
     name = "sandbox"
+    model = "sandbox-v1"
 
     def _seed(self, *parts) -> int:
         h = hashlib.sha256("|".join(parts).encode()).hexdigest()

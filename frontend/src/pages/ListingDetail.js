@@ -6,6 +6,7 @@ import api, { formatPrice, apiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { CONDITION_LABEL } from "../components/ProductCard";
 import ReportButton from "../components/ReportButton";
+import AIInsights from "../components/AIInsights";
 
 export default function ListingDetail() {
   const { idOrSlug } = useParams();
@@ -176,6 +177,10 @@ export default function ListingDetail() {
 
           {listing.description && (
             <p className="hint" style={{ marginTop: 18, lineHeight: 1.6 }}>{listing.description}</p>
+          )}
+
+          {user && (user.id === listing.seller_id || ["admin", "moderator"].includes(user.role)) && (
+            <AIInsights listingId={listing.id} />
           )}
         </div>
       </div>

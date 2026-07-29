@@ -45,8 +45,12 @@ export default function Nav() {
               <Link to="/offers" className="nav-link" data-testid="nav-offers-link">Offers</Link>
               <Link to="/orders" className="nav-link" data-testid="nav-orders-link">Orders</Link>
               <Link to="/messages" className="nav-link" data-testid="nav-messages-link">Messages</Link>
+              <Link to="/analytics" className="nav-link" data-testid="nav-analytics-link">Analytics</Link>
               {["admin", "moderator"].includes(user.role) && (
                 <Link to="/admin/moderation" className="nav-link" data-testid="nav-admin-link">Admin</Link>
+              )}
+              {["admin", "moderator"].includes(user.role) && (
+                <Link to="/admin/analytics" className="nav-link" data-testid="nav-admin-analytics-link">Insights</Link>
               )}
               <NotificationBell />
               <Link to="/dashboard" className="nav-link row" data-testid="nav-dashboard-link" style={{ gap: 6 }}>

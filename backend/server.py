@@ -40,12 +40,19 @@ from modules.messaging.router import router as messaging_router, ws_router as me
 from modules.notifications.router import router as notifications_router
 from modules.notifications import handlers as notification_handlers
 from modules.moderation.router import router as moderation_router
+from modules.ai.router import router as ai_router
+from modules.ai import handlers as ai_handlers
+from modules.analytics.router import router as analytics_router
+from buildingblocks.ratelimit import RateLimitMiddleware, SecurityHeadersMiddleware
 from seed import ensure_indexes, seed_admin_and_demo, seed_taxonomy
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("app")
 
 app = FastAPI(title="Fashion Marketplace API", version="0.1.0")
+
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RateLimitMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
@@ -92,6 +99,8 @@ app.include_router(messaging_router)
 app.include_router(messaging_ws_router)
 app.include_router(notifications_router)
 app.include_router(moderation_router)
+app.include_router(ai_router)
+app.include_router(analytics_router)
 app.include_router(taxonomy_router)
 
 # Register cross-domain event subscribers (choreography). Order matters only for
@@ -103,6 +112,7 @@ payment_handlers.register()
 shipping_handlers.register()
 identity_handlers.register()
 notification_handlers.register()
+ai_handlers.register()
 
 
 async def _offer_expiration_sweeper(db):

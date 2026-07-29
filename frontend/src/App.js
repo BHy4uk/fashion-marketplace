@@ -13,6 +13,8 @@ import Offers from "./pages/Offers";
 import Orders from "./pages/Orders";
 import Messages from "./pages/Messages";
 import AdminModeration from "./pages/AdminModeration";
+import SellerAnalytics from "./pages/SellerAnalytics";
+import AdminAnalytics from "./pages/AdminAnalytics";
 
 function Protected({ children }) {
   const { user, ready } = useAuth();
@@ -48,6 +50,8 @@ function Shell() {
           <Route path="/orders" element={<Protected><Orders /></Protected>} />
           <Route path="/messages" element={<Protected><Messages /></Protected>} />
           <Route path="/admin/moderation" element={<Protected><AdminModeration /></Protected>} />
+          <Route path="/admin/analytics" element={<Protected><AdminAnalytics /></Protected>} />
+          <Route path="/analytics" element={<Protected><SellerAnalytics /></Protected>} />
           <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

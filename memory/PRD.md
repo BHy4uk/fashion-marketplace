@@ -247,3 +247,61 @@ Set backend/.env: EMAIL_PROVIDER=resend, RESEND_API_KEY=re_..., SENDER_EMAIL=<ve
 - Shipment: no pagination; single parcel/seat; buyer shipping address not collected at checkout
   (dispatch accepts optional to_address/parcel). Sandbox delivery requires buyer confirmation
   (real carriers auto-deliver via sweeper). Search still coupled inside Listings.
+
+## Update 2026-06 (Phase 12 AI ENRICHMENT + ANALYTICS + HARDENING) — COMPLETE & TESTED (160/160 backend, frontend smoke-verified)
+- AI bounded context (DOMAIN-013): AIJob aggregate (objective+subject, lifecycle
+  Created->Queued->Running->Completed/Failed; immutable analyses + advisory
+  recommendations; every execution records provider/model/prompt_version/status).
+  AI is ADVISORY ONLY — it never mutates listings/orders/users.
+- IAIProvider port + SandboxAIProvider (default, deterministic, seeded by input hash,
+  no keys — full CI) + LLMProvider (Emergent Universal LLM key, gpt-5.4-mini, strict
+  JSON). Switch via AI_PROVIDER=sandbox|llm (AI_MODEL, EMERGENT_LLM_KEY). Versioned,
+  append-only prompts (prompts.py, ACTIVE per objective).
+- Choreography: ListingPublished -> AI auto-enriches (detected brand, suggested
+  category, quality score 0-100, condition estimate, seller recommendations) AND
+  fraud-scores (risk 0-1 + flags: replica/fake/mirror/aaa/wire transfer/gift card/
+  off-platform/whatsapp/telegram/price_too_low). Idempotent (skips if a completed job
+  for the subject exists). When risk >= AI_FRAUD_THRESHOLD (0.75) it opens/merges a
+  Moderation case via a "system-ai" report (reason=ai_fraud_signal) for HUMAN review —
+  NO automatic takedown. Reads listing content only via ListingContract.detail.
+- AI APIs: GET /api/ai/listings/{id} (enrichment; owner or staff), POST
+  /api/ai/listings/{id}/enrich (re-run; owner or staff), GET /api/ai/listings/{id}/fraud
+  (moderator/admin only).
+- Analytics bounded context (DOMAIN-012, read-only, never writes): GET
+  /api/analytics/seller (net revenue, completed orders, pending escrow payout, active/
+  total listings by state, sales, offers received+accept rate, rating); GET
+  /api/analytics/marketplace (staff: GMV, platform fees, orders by status, users,
+  listings by state, open cases + AI fraud signals, top brands/categories).
+- Hardening: RateLimitMiddleware (in-memory sliding window keyed by real client IP via
+  X-Forwarded-For) — login/register 100/60s, forgot/reset-password 5/300s; returns 429
+  RATE_LIMITED; toggle RATE_LIMIT_ENABLED (default on). SecurityHeadersMiddleware
+  (X-Content-Type-Options, X-Frame-Options=DENY, Referrer-Policy, X-XSS-Protection,
+  Permissions-Policy).
+- Frontend: /analytics (seller dashboard, stat cards + listings-by-state), /admin/analytics
+  (marketplace overview: GMV/fees/orders/users/listings, status+state bar charts, top
+  brands/categories), AIInsights panel on ListingDetail for owner/staff (quality bar,
+  detected attribute badges, recommendations, "advisory only" note, Analyse/Refresh).
+  Nav: "Analytics" (all users), "Insights" (staff -> marketplace analytics).
+- Config: AI_PROVIDER=sandbox, AI_MODEL=gpt-5.4-mini, AI_FRAUD_THRESHOLD=0.75,
+  EMERGENT_LLM_KEY set. Tests: test_ai.py (15: domain lifecycle, sandbox determinism,
+  fraud flags, enrichment/fraud API authz, publish->enrich+fraud->moderation
+  choreography, seller+marketplace analytics shape/authz, security headers, rate limit).
+  Full backend 160/160.
+
+## To activate real LLM enrichment (Phase 12 go-live)
+Set backend/.env: AI_PROVIDER=llm (AI_MODEL=gpt-5.4-mini, EMERGENT_LLM_KEY already set).
+Restart backend. Sandbox remains the deterministic default for CI/local.
+
+## Carried technical debt (Phase 12)
+- Rate limiter is single-pod in-memory (move to Redis for multi-pod). No AI job pagination/
+  history UI. AI re-enrichment is manual (owner/staff button); auto only on first publish.
+- Fraud signal opens a case but does not auto-prioritise/escalate. Analytics has no date-range
+  filters or time-series (point-in-time aggregates only).
+
+## Remaining backlog (post Phase 12)
+- P2: Extract Search into its own bounded context (currently in Listings).
+- P2: Redis pub/sub for WebSocket ConnectionManager (multi-pod messaging/notifications).
+- P2: Pagination on Orders/Payments/Shipments/Reviews/Messaging/Moderation/AI lists.
+- P2: Messaging attachments (object storage + async virus scan); scheduled/expiring
+  notifications + email retry queue; temporary-suspension auto-expiry + reactivate endpoint.
+- P3: Frontend double-WS-connection cleanup (shared app-level WebSocket context).
