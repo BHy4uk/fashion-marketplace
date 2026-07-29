@@ -1,6 +1,8 @@
 """Identity API — thin controllers under /api/auth and /api/users. No business logic."""
 from __future__ import annotations
 
+import os
+
 from fastapi import APIRouter, Depends, Request, Response
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from pydantic import BaseModel, EmailStr, Field
@@ -49,11 +51,20 @@ def _public(user: User | dict) -> dict:
                            "completed_reviews": user.reputation.completed_reviews}}
 
 
+def _cookie_options() -> dict:
+    frontend_url = (os.environ.get("FRONTEND_URL") or "").strip().lower()
+    local_hosts = ("http://localhost", "http://127.0.0.1")
+    if frontend_url.startswith(local_hosts):
+        return {"secure": False, "samesite": "lax"}
+    return {"secure": True, "samesite": "none"}
+
+
 def _set_cookies(resp: Response, access: str, refresh: str) -> None:
-    resp.set_cookie("access_token", access, httponly=True, secure=True, samesite="none",
-                    max_age=int(ACCESS_TTL.total_seconds()), path="/")
-    resp.set_cookie("refresh_token", refresh, httponly=True, secure=True, samesite="none",
-                    max_age=int(REFRESH_TTL.total_seconds()), path="/")
+    options = _cookie_options()
+    resp.set_cookie("access_token", access, httponly=True,
+                    max_age=int(ACCESS_TTL.total_seconds()), path="/", **options)
+    resp.set_cookie("refresh_token", refresh, httponly=True,
+                    max_age=int(REFRESH_TTL.total_seconds()), path="/", **options)
 
 
 @auth_router.post("/register")
@@ -95,8 +106,8 @@ async def refresh(request: Request, response: Response, db: AsyncIOMotorDatabase
     if not token:
         raise HTTPException(status_code=401, detail="No refresh token")
     access = await IdentityService(db).refresh(token)
-    response.set_cookie("access_token", access, httponly=True, secure=True, samesite="none",
-                        max_age=int(ACCESS_TTL.total_seconds()), path="/")
+    response.set_cookie("access_token", access, httponly=True,
+                        max_age=int(ACCESS_TTL.total_seconds()), path="/", **_cookie_options())
     return {"access_token": access}
 
 

@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useAuth, apiError } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
+import { apiError } from "../lib/api";
 
 export default function Auth({ mode }) {
   const isLogin = mode === "login";
