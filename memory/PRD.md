@@ -149,9 +149,41 @@ Recipient refs (city_ref/recipient_ref/address_ref/contact_ref/phone) passed per
 - Text-only (image attachments + async virus scan deferred per user). No message pagination.
 - Offer-context conversations not supported (listing + order only, per user choice).
 
-## Next phases (post Phase 9)
-- Phase 10 Notifications (in-app + email, event-sourced) — MessageSent/OrderPaid/ShipmentDelivered/ReviewPublished already flow through the outbox.
-- Phase 11 Moderation + Admin UI. Phase 12 AI Enrichment + Analytics/Hardening.
+## Update 2026-06 (Phase 10 NOTIFICATIONS — event-sourced, in-app + email) — COMPLETE & TESTED (131/131 backend, frontend 100%)
+- Notification aggregate (DOMAIN-010): created ONLY from completed business events (§7);
+  lifecycle Created->Queued->Delivered|Failed (+Canceled/Expired); per-recipient read status;
+  delivery attempt records. IDEMPOTENT via unique index (event_id, recipient_id) — redelivered
+  events never duplicate (INV-008/§20). Delivery failures never touch business flow (INV-005).
+- Provider-independent delivery (same pattern as Payments/Shipping): EmailProvider abstraction
+  with SandboxEmailProvider (default, console/log, no keys) + ResendEmailProvider (real, sync SDK
+  via asyncio.to_thread). Switch via EMAIL_PROVIDER=resend + RESEND_API_KEY + SENDER_EMAIL, no code
+  change. SendGrid/SES/Mailgun = new adapter only.
+- Channels: In-App (real-time over the shared /api/ws/messages WebSocket) + Email (gated by prefs).
+  Per-user preferences (notification_preferences): email_enabled, in_app_enabled, muted_types —
+  evaluated before delivery (INV-007).
+- Subscribes (via outbox) to OfferAccepted, PaymentCaptured, ShipmentDispatched, ShipmentDelivered,
+  OrderCompleted, ReviewPublished, MessageSent. Templates map each event -> recipient-specific specs.
+  Reads recipient contact via IdentityContract.contact() only (no cross-module DB).
+- Events: NotificationCreated/Queued/Delivered/Failed/Read.
+- APIs: GET /api/notifications; GET /api/notifications/unread-count; POST /{id}/read; POST /read-all;
+  GET/PUT /api/notifications/preferences.
+- Frontend: NotificationBell in the top nav — live badge (WebSocket), dropdown list, mark-all-read,
+  click-to-navigate. Verified real-time badge increment without reload (iteration_7, 100%).
+- Tests: 12 in test_notifications.py (domain, provider abstraction, templates, idempotency,
+  event-sourced creation, preferences, read status, real-time WS delivery). Full backend 131/131.
+
+## To activate real email (Phase 10 go-live)
+Set backend/.env: EMAIL_PROVIDER=resend, RESEND_API_KEY=re_..., SENDER_EMAIL=<verified sender>. Restart backend.
+
+## Carried technical debt (Phase 10)
+- Two brief concurrent /api/ws/messages sockets when on /messages (bell + chat) — no functional
+  impact (badge increments by exactly 1); proper fix = one shared app-level WebSocket context.
+- No scheduled/delayed/expiring notifications, no digesting, no email retry queue (immediate delivery only).
+- In-app record always created (in_app_enabled currently informational; muting affects email only).
+
+## Next phases (post Phase 10)
+- Phase 11 Moderation + Admin UI (hide/remove hooks already exist in Reviews & Messaging).
+- Phase 12 AI Enrichment + Analytics/Hardening.
 
 ## Update 2026-06 (Phase 8 REVIEWS + reputation choreography) — COMPLETE & TESTED (101/101)
 - Review aggregate (DOMAIN-008): tied to exactly one Completed order; one Author + one Recipient
