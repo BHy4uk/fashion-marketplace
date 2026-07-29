@@ -22,3 +22,12 @@ class IdentityContract:
         return {"id": u["_id"], "state": u.get("state"),
                 "display_name": u.get("profile", {}).get("display_name"),
                 "reputation": u.get("reputation")}
+
+    async def contact(self, user_id: str) -> dict | None:
+        """Email + display name for notification delivery (Notifications module)."""
+        u = await self.db.identity_users.find_one(
+            {"_id": user_id}, {"email": 1, "profile.display_name": 1})
+        if not u:
+            return None
+        return {"id": u["_id"], "email": u.get("email"),
+                "display_name": u.get("profile", {}).get("display_name")}

@@ -68,6 +68,9 @@ async def ensure_indexes(db: AsyncIOMotorDatabase) -> None:
     await db.reviews.create_index("order_id")
     await db.conversations.create_index("dedup_key", unique=True)
     await db.conversations.create_index([("participants", 1), ("last_message_at", -1)])
+    await db.notifications.create_index([("event_id", 1), ("recipient_id", 1)], unique=True)
+    await db.notifications.create_index([("recipient_id", 1), ("read", 1)])
+    await db.notifications.create_index([("recipient_id", 1), ("audit.created_at", -1)])
     await db.outbox.create_index([("processed", 1), ("created_at", 1)])
 
 

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { MagnifyingGlass, User, Plus, SignOut } from "@phosphor-icons/react";
 import { useAuth } from "../context/AuthContext";
+import NotificationBell from "./NotificationBell";
 
 export default function Nav() {
   const { user, logout } = useAuth();
@@ -44,6 +45,7 @@ export default function Nav() {
               <Link to="/offers" className="nav-link" data-testid="nav-offers-link">Offers</Link>
               <Link to="/orders" className="nav-link" data-testid="nav-orders-link">Orders</Link>
               <Link to="/messages" className="nav-link" data-testid="nav-messages-link">Messages</Link>
+              <NotificationBell />
               <Link to="/dashboard" className="nav-link row" data-testid="nav-dashboard-link" style={{ gap: 6 }}>
                 <User size={18} /> {user.profile?.display_name?.split(" ")[0] || "Account"}
               </Link>
