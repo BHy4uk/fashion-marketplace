@@ -31,12 +31,28 @@ from modules.offers import handlers as offer_handlers
 from modules.payments.router import router as payments_router
 from modules.payments import handlers as payment_handlers
 from modules.payments.service import PaymentService
+from modules.shipping.router import router as shipping_router
+from modules.shipping import handlers as shipping_handlers
+from modules.shipping.service import ShippingService
+from modules.reviews.router import router as reviews_router
+from modules.identity import handlers as identity_handlers
+from modules.messaging.router import router as messaging_router, ws_router as messaging_ws_router
+from modules.notifications.router import router as notifications_router
+from modules.notifications import handlers as notification_handlers
+from modules.moderation.router import router as moderation_router
+from modules.ai.router import router as ai_router
+from modules.ai import handlers as ai_handlers
+from modules.analytics.router import router as analytics_router
+from buildingblocks.ratelimit import RateLimitMiddleware, SecurityHeadersMiddleware
 from seed import ensure_indexes, seed_admin_and_demo, seed_taxonomy
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("app")
 
 app = FastAPI(title="Fashion Marketplace API", version="0.1.0")
+
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RateLimitMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
@@ -66,7 +82,8 @@ async def _on_event(doc: dict):
 
 
 for _evt in ("UserRegistered", "ListingPublished", "OfferAccepted", "OrderCreated",
-             "PaymentCaptured", "ShipmentDelivered", "ReviewPublished"):
+             "PaymentCaptured", "ShipmentCreated", "ShipmentDispatched",
+             "ShipmentDelivered", "ReviewPublished"):
     outbox.subscribe(_evt, _on_event)
 
 
@@ -76,6 +93,14 @@ app.include_router(listings_router)
 app.include_router(offers_router)
 app.include_router(orders_router)
 app.include_router(payments_router)
+app.include_router(shipping_router)
+app.include_router(reviews_router)
+app.include_router(messaging_router)
+app.include_router(messaging_ws_router)
+app.include_router(notifications_router)
+app.include_router(moderation_router)
+app.include_router(ai_router)
+app.include_router(analytics_router)
 app.include_router(taxonomy_router)
 
 # Register cross-domain event subscribers (choreography). Order matters only for
@@ -84,6 +109,10 @@ order_handlers.register()
 listing_handlers.register()
 offer_handlers.register()
 payment_handlers.register()
+shipping_handlers.register()
+identity_handlers.register()
+notification_handlers.register()
+ai_handlers.register()
 
 
 async def _offer_expiration_sweeper(db):
@@ -110,6 +139,20 @@ async def _escrow_release_sweeper(db):
         await asyncio.sleep(60)
 
 
+async def _shipment_tracking_sweeper(db):
+    """Poll the carrier for in-flight shipments and advance their state (DOMAIN-007).
+    For real carriers this auto-detects delivery; the sandbox reports in-transit and
+    delivery is finalized by the buyer's confirmation."""
+    while True:
+        try:
+            n = await ShippingService(db).sweep_tracking()
+            if n:
+                log.info("[shipping] advanced %d shipments", n)
+        except Exception:  # noqa: BLE001
+            log.exception("shipment tracking sweep error")
+        await asyncio.sleep(120)
+
+
 @app.on_event("startup")
 async def startup():
     db = get_db()
@@ -119,4 +162,5 @@ async def startup():
     asyncio.create_task(outbox.run_relay(db))
     asyncio.create_task(_offer_expiration_sweeper(db))
     asyncio.create_task(_escrow_release_sweeper(db))
+    asyncio.create_task(_shipment_tracking_sweeper(db))
     log.info("startup complete")

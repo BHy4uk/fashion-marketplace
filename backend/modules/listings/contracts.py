@@ -40,3 +40,14 @@ class ListingContract:
             id=d["_id"], seller_id=d["seller_id"], state=d["state"],
             price_amount=d["price"]["amount"], currency=d["price"]["currency"],
             allow_offers=d.get("allow_offers", True))
+
+    async def detail(self, listing_id: str) -> dict | None:
+        """Minimal content view for AI enrichment (only the fields the task needs, §22)."""
+        d = await self.db.listings.find_one(
+            {"_id": listing_id},
+            {"title": 1, "description": 1, "seller_id": 1, "state": 1, "price": 1})
+        if not d:
+            return None
+        return {"id": d["_id"], "title": d.get("title", ""),
+                "description": d.get("description", ""), "seller_id": d["seller_id"],
+                "state": d.get("state"), "price_amount": d.get("price", {}).get("amount")}

@@ -1,0 +1,27 @@
+{
+  "summary": "Frontend-only Phase 9 Messaging verification. Two-context (buyer + seller) test on the preview host. All headline flows PASS: WS Live status renders for both users, real-time delivery works buyer<->seller (~0.5s latency after send), unread badge appears on receiver's conversation list when not viewing the thread, PDP 'Message seller' creates conversation and navigates to /messages?c=<id>, order-message-* on Orders (Sales tab as seller) opens/creates the order conversation and navigates to /messages, and nav-messages-link routes to /messages. Orders regression smoke passes: Sales tab renders order cards with order-dispatch-* (30) on PREPARING SHIPMENT and order-review-open-* (36) on COMPLETED; order-confirm-delivery-* is 0 on seller side which is correct (buyer-only action).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/messages seller conversation list", "issues": ["Some conversation rows show raw counterparty ids like 'msg_daeee33f' or 'mb7979a406' as the display name (fallback when counterparty has no display_name). Cosmetic — thread body itself renders fine."]},
+      {"screen": "/orders", "issues": ["Buyer's default tab is 'Purchases' which is empty for a brand-new registered account; requirement testids appear under 'Sales' for seller. Not a bug, just noting that a freshly-registered buyer sees an empty state."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Messages.js uses `data-testid^=\"message-\"` prefix which also matches `messages-heading`, `message-input`, `message-send-button`. Consider a more distinct prefix (e.g. `chat-bubble-`) for message bubbles so external tests can select bubbles cleanly without false positives.",
+    "Conversation list display name falls back to a truncated conversation id when counterparty_name is missing; render a nicer fallback like 'User' or the counterparty email prefix.",
+    "Pre-login console noise: two 401s from /api/auth/me (or similar) before login — harmless but consider silencing when unauthenticated."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only per request)", "frontend": "100% (all requested flows pass)"},
+  "test_credentials": "Seller: seller@archivemarket.co / Seller12345. Buyer: newly registered TEST_buyer_<rand>@example.com / Password12345.",
+  "seed_data_creation": "Registered ephemeral buyer accounts (TEST_buyer_*) and created several listing-context conversations with test messages against the seller. Non-destructive.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Route for listing detail is /listing/:idOrSlug (singular). Register form uses data-testid auth-name-input/auth-email-input/auth-password-input + button 'Create account'. Message bubbles are inside [data-testid=thread-messages] with per-message id [data-testid^=message-<id>]; always scope bubble selectors to thread-messages to avoid matching heading/input/send-button. Orders page defaults to Purchases; seller order-message/dispatch/review testids live under the Sales tab. To test order-message on the buyer side, seed a paid order for that buyer first (backend order fixtures).",
+  "rca of the issue": "N/A — no bugs found in Phase 9 messaging UI."
+}

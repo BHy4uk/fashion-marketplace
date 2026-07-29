@@ -23,7 +23,24 @@ async def on_payment_refunded(event: dict) -> None:
     await OrderService(get_db()).mark_refunded(event["payload"]["order_id"])
 
 
+# ---- reactions to Shipping domain events (Orders holds NO carrier logic) ----
+async def on_shipment_created(event: dict) -> None:
+    await OrderService(get_db()).begin_preparation(event["payload"]["order_id"])
+
+
+async def on_shipment_dispatched(event: dict) -> None:
+    p = event["payload"]
+    await OrderService(get_db()).mark_shipped(p["order_id"], p["shipment_id"])
+
+
+async def on_shipment_delivered(event: dict) -> None:
+    await OrderService(get_db()).mark_delivered_complete(event["payload"]["order_id"])
+
+
 def register() -> None:
     subscribe("OfferAccepted", on_offer_accepted)
     subscribe("PaymentCaptured", on_payment_captured)
     subscribe("PaymentRefunded", on_payment_refunded)
+    subscribe("ShipmentCreated", on_shipment_created)
+    subscribe("ShipmentDispatched", on_shipment_dispatched)
+    subscribe("ShipmentDelivered", on_shipment_delivered)

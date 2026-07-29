@@ -1,0 +1,27 @@
+{
+  "summary": "Phase 10 Notifications (frontend only) verified. Newly-registered buyer sees NotificationBell in top nav (empty state, no badge). After buyer sends a message from a listing and seller replies, buyer receives a live {type:'notification', notif_type:'NewMessage', title:'New message'} frame over wss://.../api/ws/messages, the notification-badge appears with count 1 WITHOUT reload, and the dropdown shows the notification-item titled 'New message'. Mark-all-read hides the badge; a subsequent seller reply re-increments the badge; clicking a notification-item marks it read and navigates. All 5 nav links render for a logged-in user and no blocking console errors.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Notification WebSocket delivery", "issue": "Each 'notification' frame is observed twice per event on the buyer page (two WS connections to /api/ws/messages are briefly concurrent across route transitions). Badge still increments correctly by exactly 1 per event (setCount is invoked from the currently-mounted component only), so no user-visible bug, but there is a small window where two /api/ws/messages sockets are open in parallel. Consider ensuring the previous socket is fully closed before opening a new one on route change or gating on ws.readyState.", "affected_selectors": ["notification-badge"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_7.json"],
+  "action_items": [
+    "Optional: dedupe /api/ws/messages connections in NotificationBell/messages page to avoid transient double-open on route change (no functional impact today)."
+  ],
+  "critical_code_review_comments": [
+    "NotificationBell opens a dedicated WS to /api/ws/messages in addition to the one opened by the Messages page; consider centralising the WS in a context/provider so a single connection serves both consumers.",
+    "The dropdown renders items only if user is logged in; there is no error state if /api/notifications fails (silently caught). Consider surfacing an error/retry in the dropdown.",
+    "ROUTE_FOR fallback goes to /dashboard for unknown notif_types — acceptable but should be documented."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped per request)", "frontend": "100%"},
+  "test_credentials": "Seller: seller@archivemarket.co / Seller12345 ; Buyer: freshly registered TEST_nbuyer_<rand>@example.com / Password12345",
+  "seed_data_creation": "Registered one throwaway buyer per run (TEST_nbuyer_xfd5ie@example.com); created one conversation on an existing seed listing.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Real-time bell verified end-to-end. To re-test: register fresh buyer, message any seed listing, have seller reply from /messages, assert notification-badge appears without reload and dropdown shows a 'New message' item. Duplicate WS observation is expected in dev/StrictMode and does NOT double-increment the badge."
+}

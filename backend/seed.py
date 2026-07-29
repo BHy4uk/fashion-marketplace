@@ -32,12 +32,13 @@ BRANDS = ["Nike", "Adidas", "Stone Island", "Carhartt WIP", "Acne Studios",
           "Palace", "New Balance", "Salomon", "Arc'teryx", "Vintage", "Other"]
 
 _IMG = {
-    "sneaker1": "https://images.unsplash.com/photo-1600185365778-7875a359b924?crop=entropy&cs=srgb&fm=jpg&q=85&w=1000",
-    "sneaker2": "https://images.unsplash.com/photo-1544441892-83af2e53ea48?crop=entropy&cs=srgb&fm=jpg&q=85&w=1000",
-    "bag1": "https://images.unsplash.com/photo-1705909237050-7a7625b47fac?crop=entropy&cs=srgb&fm=jpg&q=85&w=1000",
-    "bag2": "https://images.unsplash.com/photo-1605733513597-a8f8341084e6?crop=entropy&cs=srgb&fm=jpg&q=85&w=1000",
-    "street1": "https://images.unsplash.com/photo-1624353656309-8be1a6c457be?crop=entropy&cs=srgb&fm=jpg&q=85&w=1000",
-    "street2": "https://images.unsplash.com/photo-1532332248682-206cc786359f?crop=entropy&cs=srgb&fm=jpg&q=85&w=1000",
+    "af1": "https://images.unsplash.com/photo-1508125673219-7cec6bc90159?crop=entropy&cs=srgb&fm=jpg&q=85&w=1000",
+    "suede": "https://images.unsplash.com/photo-1591370409347-2fd43b7842de?crop=entropy&cs=srgb&fm=jpg&q=85&w=1000",
+    "sneakerlot": "https://images.unsplash.com/photo-1495555961986-6d4c1ecb7be3?crop=entropy&cs=srgb&fm=jpg&q=85&w=1000",
+    "handbag": "https://images.unsplash.com/photo-1575202332411-b01fe9ace7a8?crop=entropy&cs=srgb&fm=jpg&q=85&w=1000",
+    "backpack": "https://images.unsplash.com/photo-1575201046471-082b5c1a1e79?crop=entropy&cs=srgb&fm=jpg&q=85&w=1000",
+    "flatlay": "https://images.unsplash.com/photo-1614676471928-2ed0ad1061a4?crop=entropy&cs=srgb&fm=jpg&q=85&w=1000",
+    "belt": "https://images.unsplash.com/photo-1603805752838-aa579d77da72?crop=entropy&cs=srgb&fm=jpg&q=85&w=1000",
 }
 
 
@@ -58,6 +59,20 @@ async def ensure_indexes(db: AsyncIOMotorDatabase) -> None:
     await db.orders.create_index("listing_id")
     await db.payments.create_index("order_id", unique=True)
     await db.payments.create_index([("status", 1), ("held", 1), ("release_at", 1)])
+    await db.shipments.create_index("order_id", unique=True)
+    await db.shipments.create_index("status")
+    await db.shipments.create_index("tracking_number")
+    await db.reviews.create_index([("order_id", 1), ("author_id", 1), ("recipient_id", 1)],
+                                  unique=True)
+    await db.reviews.create_index([("recipient_id", 1), ("status", 1), ("audit.created_at", -1)])
+    await db.reviews.create_index("order_id")
+    await db.conversations.create_index("dedup_key", unique=True)
+    await db.conversations.create_index([("participants", 1), ("last_message_at", -1)])
+    await db.notifications.create_index([("event_id", 1), ("recipient_id", 1)], unique=True)
+    await db.notifications.create_index([("recipient_id", 1), ("read", 1)])
+    await db.notifications.create_index([("recipient_id", 1), ("audit.created_at", -1)])
+    await db.moderation_cases.create_index([("target_type", 1), ("target_id", 1), ("status", 1)])
+    await db.moderation_cases.create_index([("status", 1), ("priority", -1), ("audit.updated_at", -1)])
     await db.outbox.create_index([("processed", 1), ("created_at", 1)])
 
 
@@ -92,36 +107,36 @@ async def seed_admin_and_demo(db: AsyncIOMotorDatabase) -> None:
     seller = await _get_or_create_user(db, "seller@archivemarket.co", "Seller12345", "Kyiv Archive")
     svc = ListingService(db)
     demo = [
-        dict(title="Nike Air Max — White / University Red", price_amount=420000,
-             category="footwear", brand="Nike", gender="Men", size="42",
+        dict(title="Nike Air Force 1 — White", price_amount=420000,
+             category="footwear", brand="Nike", gender="Unisex", size="42",
              color="White", condition="LIKE_NEW", material="Leather", style="Streetwear",
-             images=[{"url": _IMG["sneaker1"]}, {"url": _IMG["sneaker2"]}],
+             images=[{"url": _IMG["af1"]}, {"url": _IMG["sneakerlot"]}],
              description="Worn twice. Box included. No flaws. Ships from Kyiv."),
-        dict(title="New Balance 990 — Grey Suede", price_amount=380000,
+        dict(title="Suede Court Sneakers — Brown", price_amount=380000,
              category="footwear", brand="New Balance", gender="Unisex", size="43",
-             color="Grey", condition="GENTLY_USED", material="Suede",
-             images=[{"url": _IMG["sneaker2"]}],
-             description="Classic grey 990. Minor creasing, tons of life left."),
-        dict(title="Black Leather Tote — Full Grain", price_amount=560000,
-             category="bags", brand="Bottega Veneta", gender="Women", color="Black",
+             color="Brown", condition="GENTLY_USED", material="Suede",
+             images=[{"url": _IMG["suede"]}],
+             description="Premium suede uppers. Minor creasing, tons of life left."),
+        dict(title="Grey Leather Handbag — Full Grain", price_amount=560000,
+             category="bags", brand="Bottega Veneta", gender="Women", color="Grey",
              condition="LIKE_NEW", material="Leather",
-             images=[{"url": _IMG["bag1"]}, {"url": _IMG["bag2"]}],
-             description="Structured full-grain leather tote. Barely used."),
-        dict(title="Minimal Leather Handbag", price_amount=310000,
-             category="bags", brand="Prada", gender="Women", color="Black",
+             images=[{"url": _IMG["handbag"]}],
+             description="Structured full-grain leather handbag. Barely used."),
+        dict(title="Powder Blue Mini Backpack", price_amount=310000,
+             category="backpacks", brand="Prada", gender="Women", color="Blue",
              condition="GENTLY_USED", material="Leather",
-             images=[{"url": _IMG["bag2"]}],
-             description="Timeless everyday bag. Light wear on corners."),
-        dict(title="Technical Shell Jacket — Signal Orange", price_amount=690000,
-             category="outerwear", brand="Arc'teryx", gender="Unisex", size="M",
-             color="Orange", condition="LIKE_NEW", material="Gore-Tex", season="Winter",
-             images=[{"url": _IMG["street1"]}],
-             description="Waterproof shell. High-vis colourway. Immaculate."),
-        dict(title="Vintage Wool Overcoat", price_amount=250000,
-             category="outerwear", brand="Vintage", gender="Men", size="L",
-             color="Camel", condition="USED", material="Wool", season="Winter",
-             images=[{"url": _IMG["street2"]}],
-             description="Heavyweight wool. Beautifully aged. Timeless silhouette."),
+             images=[{"url": _IMG["backpack"]}],
+             description="Compact everyday backpack. Light wear on corners."),
+        dict(title="Autumn Knit & Trouser Set", price_amount=250000,
+             category="tops", brand="Acne Studios", gender="Women", size="M",
+             color="Rust", condition="USED", material="Wool", season="Autumn",
+             images=[{"url": _IMG["flatlay"]}],
+             description="Cosy knit paired with tailored trousers. Beautifully aged."),
+        dict(title="Full-Grain Leather Belt", price_amount=90000,
+             category="belts", brand="Other", gender="Unisex", color="Black",
+             condition="LIKE_NEW", material="Leather",
+             images=[{"url": _IMG["belt"]}],
+             description="Minimal black leather belt, brushed hardware. Timeless."),
     ]
     for d in demo:
         listing = await svc.create_draft(seller, d)

@@ -69,6 +69,18 @@ class ListingService:
         await self.repo.save(l)
         return l
 
+    async def moderate_takedown(self, listing_id: str, remove: bool = True) -> Listing:
+        """Moderation enforcement (no ownership check): remove (soft-delete) or hide (archive)."""
+        l = await self.repo.by_id(listing_id)
+        if not l:
+            raise DomainError("LISTING_NOT_FOUND", "Listing not found", 404)
+        if remove:
+            l.soft_delete()
+        else:
+            l.archive()
+        await self.repo.save(l)
+        return l
+
     # ---- event-driven availability (reacts to Order lifecycle, idempotent) ----
     async def reserve_for_order(self, listing_id: str) -> None:
         l = await self.repo.by_id(listing_id)

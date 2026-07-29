@@ -95,6 +95,28 @@ class OrderService:
             order.refund()
             await self.repo.save(order)
 
+    # ---- reactions to Shipping events (idempotent; invoked by event handlers, Phase 7) ----
+    async def begin_preparation(self, order_id: str) -> None:
+        order = await self.repo.by_id(order_id)
+        if order and order.status == "Paid":
+            order.prepare_shipment()
+            await self.repo.save(order)
+
+    async def mark_shipped(self, order_id: str, shipment_id: str) -> None:
+        order = await self.repo.by_id(order_id)
+        if order and order.status == "PreparingShipment":
+            order.mark_shipped(shipment_id)
+            await self.repo.save(order)
+
+    async def mark_delivered_complete(self, order_id: str) -> None:
+        """Delivery confirmed -> Order Delivered then auto-Completed, which triggers the
+        escrow payout release in Payments (OrderCompleted). Closes the escrow loop."""
+        order = await self.repo.by_id(order_id)
+        if order and order.status == "Shipped":
+            order.mark_delivered()
+            order.complete()
+            await self.repo.save(order)
+
     # ---- views ----
     async def _view(self, o: Order) -> dict:
         return self._view_doc({

@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import api, { formatPrice, apiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { CONDITION_LABEL } from "../components/ProductCard";
+import ReportButton from "../components/ReportButton";
+import AIInsights from "../components/AIInsights";
 
 export default function ListingDetail() {
   const { idOrSlug } = useParams();
@@ -44,6 +46,18 @@ export default function ListingDetail() {
     setShowOffer(true);
   };
 
+  const messageSeller = async () => {
+    if (!user) { navigate("/login"); return; }
+    try {
+      const { data } = await api.post("/conversations", {
+        context_type: "listing", context_id: listing.id,
+      });
+      navigate(`/messages?c=${data.conversation_id}`);
+    } catch (err) {
+      toast.error(apiError(err));
+    }
+  };
+
   const submitOffer = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -67,7 +81,12 @@ export default function ListingDetail() {
       <div className="pdp">
         <div className="pdp-gallery" data-testid="pdp-gallery">
           <div className="pdp-main">
-            <img src={listing.images?.[active]?.url} alt={listing.title} />
+            {listing.images?.[active]?.url ? (
+              <img src={listing.images[active].url} alt={listing.title}
+                onError={(e) => { e.currentTarget.style.display = "none";
+                  e.currentTarget.parentElement.classList.add("is-empty"); }} />
+            ) : null}
+            <div className="img-fallback pdp-fallback">{a.brand || "ARCHIVE"}</div>
           </div>
           {listing.images?.length > 1 && (
             <div className="pdp-thumbs">
@@ -100,6 +119,11 @@ export default function ListingDetail() {
             <button className="btn btn-block" onClick={openOffer}
               data-testid="pdp-offer-button">Make an Offer</button>
           )}
+          <button className="btn btn-block mt-16" onClick={messageSeller}
+            data-testid="pdp-message-seller-button">Message seller</button>
+          <div className="row" style={{ justifyContent: "center", marginTop: 12 }}>
+            <ReportButton targetType="listing" targetId={listing.id} label="Report listing" />
+          </div>
 
           {showOffer && (
             <div className="offer-modal-backdrop" data-testid="offer-modal"
@@ -153,6 +177,10 @@ export default function ListingDetail() {
 
           {listing.description && (
             <p className="hint" style={{ marginTop: 18, lineHeight: 1.6 }}>{listing.description}</p>
+          )}
+
+          {user && (user.id === listing.seller_id || ["admin", "moderator"].includes(user.role)) && (
+            <AIInsights listingId={listing.id} />
           )}
         </div>
       </div>
