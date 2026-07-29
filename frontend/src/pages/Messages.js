@@ -140,7 +140,7 @@ export default function Messages() {
                   {thread.messages.map((m) => {
                     const mine = m.author_id === user.id;
                     return (
-                      <div key={m.message_id} data-testid={`message-${m.message_id}`}
+                      <div key={m.message_id} data-testid={`chat-bubble-${m.message_id}`}
                         style={{ alignSelf: mine ? "flex-end" : "flex-start", maxWidth: "70%",
                           background: mine ? "var(--primary)" : "var(--bg-soft, #f2f2f2)",
                           color: mine ? "#fff" : "inherit", padding: "8px 12px", borderRadius: 12 }}>

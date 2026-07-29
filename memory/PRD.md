@@ -125,9 +125,33 @@ Set in backend/.env: SHIPPING_PROVIDER=novaposhta, NOVAPOSHTA_API_KEY, and sende
 (NOVAPOSHTA_SENDER_CITY/REF/ADDRESS/CONTACT/PHONE from the NP business account + directory APIs).
 Recipient refs (city_ref/recipient_ref/address_ref/contact_ref/phone) passed per-dispatch in to_address.
 
-## Next phases (post Phase 7)
-- Phase 8 Reviews (DOMAIN-008, feeds Identity reputation) — DONE (see below).
-- Phase 9 Messaging (WebSockets). Phase 10 Notifications. Phase 11 Moderation+Admin UI. Phase 12 AI+Analytics.
+## Update 2026-06 (Phase 9 MESSAGING — real-time WebSockets) — COMPLETE & TESTED (119/119 backend, frontend 100%)
+- Conversation aggregate (DOMAIN-009): tied to exactly one business context (listing|order for MVP),
+  >=2 participants, embedded immutable Messages (INV-004/007 — never deleted, only hidden),
+  per-participant ReadReceipts, lifecycle Active<->Archived->Closed. Unique dedup_key
+  (context+sorted participants) => reuse existing conversation, deterministic dup failure (§9,§15).
+- Real-time transport: in-process ConnectionManager (user_id -> sockets); message send PERSISTS
+  (history/audit) AND BROADCASTS live to connected participants (~0.5s observed). WebSocket
+  /api/ws/messages authenticated via httpOnly access_token cookie (or ?token= fallback); accepts
+  client send/read/ping frames. FIX: WS send_json can't serialize datetime -> emit ISO strings.
+- Events: ConversationCreated / MessageSent / MessageRead / ConversationArchived / ConversationClosed / MessageHidden.
+- Reads context via Listing/Order contracts + Identity contract only (no cross-module DB).
+- APIs: POST /api/conversations (start/reuse); GET /api/conversations (list + unread + counterparty);
+  GET /api/conversations/{id}/messages (history, marks read); POST .../messages (send);
+  POST .../read; POST .../archive; POST .../close (mod/admin); POST .../messages/{mid}/hide (mod/admin).
+- Frontend: new /messages two-pane chat page (WebSocket live indicator, unread badges, real-time
+  incoming), 'Message seller' on ListingDetail, 'Message buyer/seller' per order on Orders, Messages nav link.
+- Tests: 18 in test_messaging.py (domain, REST, authz, dedup/reuse, read receipts, moderation,
+  and REAL WebSocket delivery via websockets lib). Full backend suite 119/119. Frontend flow test 100% (iteration_6).
+
+## Carried technical debt (Phase 9)
+- ConnectionManager is single-pod in-memory; horizontal scale needs a Redis pub/sub broadcast bus.
+- Text-only (image attachments + async virus scan deferred per user). No message pagination.
+- Offer-context conversations not supported (listing + order only, per user choice).
+
+## Next phases (post Phase 9)
+- Phase 10 Notifications (in-app + email, event-sourced) — MessageSent/OrderPaid/ShipmentDelivered/ReviewPublished already flow through the outbox.
+- Phase 11 Moderation + Admin UI. Phase 12 AI Enrichment + Analytics/Hardening.
 
 ## Update 2026-06 (Phase 8 REVIEWS + reputation choreography) — COMPLETE & TESTED (101/101)
 - Review aggregate (DOMAIN-008): tied to exactly one Completed order; one Author + one Recipient
