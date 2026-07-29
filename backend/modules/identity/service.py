@@ -69,6 +69,16 @@ class IdentityService:
             raise DomainError("USER_NOT_FOUND", "User not found", 404)
         return user
 
+    async def suspend(self, user_id: str, reason: str = "policy_violation") -> User:
+        """Moderation enforcement: suspend an account (blocks login). Idempotent."""
+        user = await self.repo.by_id(user_id)
+        if not user:
+            raise DomainError("USER_NOT_FOUND", "User not found", 404)
+        if user.state != "Suspended":
+            user.suspend(reason)
+            await self.repo.save(user)
+        return user
+
     async def apply_review(self, review_id: str, user_id: str, rating: int) -> None:
         """React to a ReviewPublished event: fold the rating into the recipient's
         reputation (Identity OWNS reputation). Idempotent for at-least-once delivery

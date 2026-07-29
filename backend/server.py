@@ -39,6 +39,7 @@ from modules.identity import handlers as identity_handlers
 from modules.messaging.router import router as messaging_router, ws_router as messaging_ws_router
 from modules.notifications.router import router as notifications_router
 from modules.notifications import handlers as notification_handlers
+from modules.moderation.router import router as moderation_router
 from seed import ensure_indexes, seed_admin_and_demo, seed_taxonomy
 
 logging.basicConfig(level=logging.INFO)
@@ -90,6 +91,7 @@ app.include_router(reviews_router)
 app.include_router(messaging_router)
 app.include_router(messaging_ws_router)
 app.include_router(notifications_router)
+app.include_router(moderation_router)
 app.include_router(taxonomy_router)
 
 # Register cross-domain event subscribers (choreography). Order matters only for

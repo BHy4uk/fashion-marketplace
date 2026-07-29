@@ -1,0 +1,24 @@
+{
+  "summary": "Phase 11 Moderation + Admin UI end-to-end frontend testing. Registered a new normal user, verified NO admin nav link and admin-forbidden guard on /admin/moderation. Opened a /shop listing, submitted a report (Counterfeit / fake with note) — success toast shown. Logged in as admin — nav-admin-link visible, /admin/moderation renders heading, stats bar, 7 filter buttons, case list (13 cases). Clicked into a case (status Created) → Start investigation (→ Investigation) → selected 'ListingRemoved' action, entered reason, Record decision (→ DecisionMade with the recorded decision visible under 'Decisions (append-only)') → Close (→ Closed, read-only). All data-testids present and working. Regression: nav-shop-link, nav-messages-link, notification-bell all render; listing PDP shows price + pdp-message-seller-button. All flows successful; only expected 401/403 network responses (pre-login session probe + normal-user probing mod endpoints for forbidden state) — no JS errors.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_8.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "AdminModeration.js: Login flow works but the 'Close' button remains rendered after DecisionMade (correct) and disappears in Closed state via the read-only branch — good. Confirmed append-only decisions rendering by decision_id.",
+    "ReportButton.js: gated by useAuth (null user hides button) — good. Uses REASONS list matching backend enum expectations. Success toast text 'Report submitted — our team will review it' displays via sonner.",
+    "Nav.js: correctly gates data-testid=nav-admin-link on user.role in ['admin','moderator']."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped)", "frontend": "100%"},
+  "test_credentials": "Admin: admin@archivemarket.co / Admin12345 ; Test user created: TEST_reporter_8sias7@example.com / Password12345",
+  "seed_data_creation": "Created 1 normal user account and 1 moderation report on a /shop demo listing (test-ship-c127a5-ac5896). Report was triaged to Closed with ListingRemoved decision by admin.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All Phase 11 moderation UI flows verified passing. Console shows benign 401 (pre-login /me probe) and 403 (normal user hitting /moderation/cases while on forbidden page) — expected. Admin dashboard shows multiple prior CREATED cases from earlier runs; use the 'Created' filter or scroll list to find newly submitted reports.",
+  "rca of the issue": "No issues found."
+}

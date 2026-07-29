@@ -45,6 +45,9 @@ export default function Nav() {
               <Link to="/offers" className="nav-link" data-testid="nav-offers-link">Offers</Link>
               <Link to="/orders" className="nav-link" data-testid="nav-orders-link">Orders</Link>
               <Link to="/messages" className="nav-link" data-testid="nav-messages-link">Messages</Link>
+              {["admin", "moderator"].includes(user.role) && (
+                <Link to="/admin/moderation" className="nav-link" data-testid="nav-admin-link">Admin</Link>
+              )}
               <NotificationBell />
               <Link to="/dashboard" className="nav-link row" data-testid="nav-dashboard-link" style={{ gap: 6 }}>
                 <User size={18} /> {user.profile?.display_name?.split(" ")[0] || "Account"}

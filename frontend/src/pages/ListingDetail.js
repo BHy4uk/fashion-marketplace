@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import api, { formatPrice, apiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { CONDITION_LABEL } from "../components/ProductCard";
+import ReportButton from "../components/ReportButton";
 
 export default function ListingDetail() {
   const { idOrSlug } = useParams();
@@ -119,6 +120,9 @@ export default function ListingDetail() {
           )}
           <button className="btn btn-block mt-16" onClick={messageSeller}
             data-testid="pdp-message-seller-button">Message seller</button>
+          <div className="row" style={{ justifyContent: "center", marginTop: 12 }}>
+            <ReportButton targetType="listing" targetId={listing.id} label="Report listing" />
+          </div>
 
           {showOffer && (
             <div className="offer-modal-backdrop" data-testid="offer-modal"

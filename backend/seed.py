@@ -71,6 +71,8 @@ async def ensure_indexes(db: AsyncIOMotorDatabase) -> None:
     await db.notifications.create_index([("event_id", 1), ("recipient_id", 1)], unique=True)
     await db.notifications.create_index([("recipient_id", 1), ("read", 1)])
     await db.notifications.create_index([("recipient_id", 1), ("audit.created_at", -1)])
+    await db.moderation_cases.create_index([("target_type", 1), ("target_id", 1), ("status", 1)])
+    await db.moderation_cases.create_index([("status", 1), ("priority", -1), ("audit.updated_at", -1)])
     await db.outbox.create_index([("processed", 1), ("created_at", 1)])
 
 
