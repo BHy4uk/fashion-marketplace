@@ -11,6 +11,7 @@ import Sell from "./pages/Sell";
 import Dashboard from "./pages/Dashboard";
 import Offers from "./pages/Offers";
 import Orders from "./pages/Orders";
+import Messages from "./pages/Messages";
 
 function Protected({ children }) {
   const { user, ready } = useAuth();
@@ -44,6 +45,7 @@ function Shell() {
           <Route path="/sell" element={<Protected><Sell /></Protected>} />
           <Route path="/offers" element={<Protected><Offers /></Protected>} />
           <Route path="/orders" element={<Protected><Orders /></Protected>} />
+          <Route path="/messages" element={<Protected><Messages /></Protected>} />
           <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

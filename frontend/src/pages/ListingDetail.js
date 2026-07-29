@@ -44,6 +44,18 @@ export default function ListingDetail() {
     setShowOffer(true);
   };
 
+  const messageSeller = async () => {
+    if (!user) { navigate("/login"); return; }
+    try {
+      const { data } = await api.post("/conversations", {
+        context_type: "listing", context_id: listing.id,
+      });
+      navigate(`/messages?c=${data.conversation_id}`);
+    } catch (err) {
+      toast.error(apiError(err));
+    }
+  };
+
   const submitOffer = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -105,6 +117,8 @@ export default function ListingDetail() {
             <button className="btn btn-block" onClick={openOffer}
               data-testid="pdp-offer-button">Make an Offer</button>
           )}
+          <button className="btn btn-block mt-16" onClick={messageSeller}
+            data-testid="pdp-message-seller-button">Message seller</button>
 
           {showOffer && (
             <div className="offer-modal-backdrop" data-testid="offer-modal"

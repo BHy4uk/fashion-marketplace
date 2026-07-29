@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import api, { formatPrice, apiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
@@ -15,9 +15,11 @@ const humanize = (s) => (s || "").replace(/([a-z])([A-Z])/g, "$1 $2");
 
 export default function Orders() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [box, setBox] = useState("buyer");
   const [items, setItems] = useState([]);
   const [shipments, setShipments] = useState({});
+  const [reviews, setReviews] = useState({});
   const [loading, setLoading] = useState(true);
 
   const SHIPPED_STATES = ["Paid", "PreparingShipment", "Shipped", "Delivered", "Completed"];
@@ -35,6 +37,15 @@ export default function Orders() {
         } catch (_) { /* no shipment yet */ }
       }));
       setShipments(map);
+      const completed = r.data.items.filter((o) => o.status === "Completed");
+      const rmap = {};
+      await Promise.all(completed.map(async (o) => {
+        try {
+          const res = await api.get(`/reviews/eligibility/${o.id}`);
+          rmap[o.id] = res.data;
+        } catch (_) { /* ignore */ }
+      }));
+      setReviews(rmap);
     }).finally(() => setLoading(false));
   }, [box]);
 
@@ -95,6 +106,17 @@ export default function Orders() {
     }
   };
 
+  const messageCounterparty = async (orderId) => {
+    try {
+      const { data } = await api.post("/conversations", {
+        context_type: "order", context_id: orderId,
+      });
+      navigate(`/messages?c=${data.conversation_id}`);
+    } catch (e) {
+      toast.error(apiError(e));
+    }
+  };
+
   return (
     <div className="container" style={{ paddingTop: 24, paddingBottom: 60 }}>
       <div className="section-head"><h2 data-testid="orders-heading">Orders</h2></div>
@@ -150,6 +172,10 @@ export default function Orders() {
                       onClick={() => confirmDelivery(shipments[o.id].id)}
                       data-testid={`order-confirm-delivery-${o.id}`}>Confirm delivery</button>
                   )}
+                  <button className="btn btn-sm" onClick={() => messageCounterparty(o.id)}
+                    data-testid={`order-message-${o.id}`}>
+                    Message {box === "buyer" ? "seller" : "buyer"}
+                  </button>
                 </div>
               </div>
               {shipments[o.id]?.tracking_number && (

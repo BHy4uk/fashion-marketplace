@@ -36,6 +36,7 @@ from modules.shipping import handlers as shipping_handlers
 from modules.shipping.service import ShippingService
 from modules.reviews.router import router as reviews_router
 from modules.identity import handlers as identity_handlers
+from modules.messaging.router import router as messaging_router, ws_router as messaging_ws_router
 from seed import ensure_indexes, seed_admin_and_demo, seed_taxonomy
 
 logging.basicConfig(level=logging.INFO)
@@ -84,6 +85,8 @@ app.include_router(orders_router)
 app.include_router(payments_router)
 app.include_router(shipping_router)
 app.include_router(reviews_router)
+app.include_router(messaging_router)
+app.include_router(messaging_ws_router)
 app.include_router(taxonomy_router)
 
 # Register cross-domain event subscribers (choreography). Order matters only for
