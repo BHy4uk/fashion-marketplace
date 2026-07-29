@@ -181,9 +181,38 @@ Set backend/.env: EMAIL_PROVIDER=resend, RESEND_API_KEY=re_..., SENDER_EMAIL=<ve
 - No scheduled/delayed/expiring notifications, no digesting, no email retry queue (immediate delivery only).
 - In-app record always created (in_app_enabled currently informational; muting affects email only).
 
-## Next phases (post Phase 10)
-- Phase 11 Moderation + Admin UI (hide/remove hooks already exist in Reviews & Messaging).
-- Phase 12 AI Enrichment + Analytics/Hardening.
+## Update 2026-06 (Phase 11 MODERATION + ADMIN UI) — COMPLETE & TESTED (145/145 backend, frontend 100%)
+- ModerationCase aggregate (DOMAIN-011): investigation-centric. References marketplace
+  entities but never owns them (INV-007). Evidence immutable (INV-003), decisions
+  APPEND-ONLY (INV-004), closed/dismissed cases read-only (INV-005). Lifecycle
+  Created->UnderReview->Investigation->DecisionMade->Closed (+Dismissed).
+- Report intake: any authenticated user reports a target (listing|review|message|user).
+  Reports MERGE into the existing open case for a target (§9); duplicate report by same
+  reporter rejected (§15/§16 DUPLICATE_REPORT).
+- Decision actions: NoAction, Warning, ListingHidden, ListingRemoved, MessageHidden,
+  ReviewHidden, ReviewRemoved, TemporarySuspension, PermanentSuspension. ENFORCEMENT is
+  delegated to owning modules (application layer): Reviews.hide/remove, Messaging.hide_message,
+  Listings.moderate_takedown (NEW), Identity.suspend (NEW). Enforce-before-record so a failed
+  enforcement aborts cleanly.
+- APIs: POST /api/moderation/reports (any user); GET /api/moderation/cases[?status], /stats,
+  /cases/{id}; POST /cases/{id}/{assign|investigate|evidence|comment|decision|close|dismiss}
+  (all moderator/admin via require_roles — moderation data confidential §13/§20).
+- Frontend: /admin/moderation dashboard (stats bar, status filters, case queue, case detail with
+  reports/evidence/decisions/comments + investigate/comment/decision/close/dismiss). 'Admin' nav
+  link shown only for staff. ReportButton on ListingDetail ('Report listing').
+- Tests: 14 in test_moderation.py (domain lifecycle, append-only decisions, read-only closed,
+  report merge + dedup, permissions, ENFORCEMENT — ListingRemoved takes down listing,
+  PermanentSuspension blocks login, dismiss, stats). Full backend 145/145. Frontend 100% (iteration_8).
+
+## Carried technical debt (Phase 11)
+- Suspension is one-way (no reactivate endpoint yet); TemporarySuspension has no auto-expiry.
+- No automated detection/AI signals feeding cases (manual reports only) — Phase 12.
+- No SLA timers, case priority is set to 'normal' (not auto-escalated); no evidence file uploads.
+- No pagination on the case queue.
+
+## Next phase (final)
+- Phase 12 AI Enrichment + Analytics/Hardening (listing auto-tagging/quality, fraud signals into
+  Moderation, seller/marketplace analytics, rate limiting + hardening).
 
 ## Update 2026-06 (Phase 8 REVIEWS + reputation choreography) — COMPLETE & TESTED (101/101)
 - Review aggregate (DOMAIN-008): tied to exactly one Completed order; one Author + one Recipient
