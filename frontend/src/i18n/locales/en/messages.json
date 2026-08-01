@@ -1,0 +1,22 @@
+{
+  "heading": "Messages",
+  "status": {
+    "online": "● Live",
+    "offline": "○ Offline"
+  },
+  "empty": "No conversations yet. Start one from a listing or an order.",
+  "thread": {
+    "empty": "No messages yet"
+  },
+  "prompt": {
+    "select": "Select a conversation",
+    "greeting": "Say hello 👋"
+  },
+  "user": {
+    "default": "User"
+  },
+  "input": {
+    "placeholder": "Write a message…",
+    "sendAria": "Send message"
+  }
+}

@@ -28,6 +28,35 @@ class OrderService:
         self.listings = ListingContract(db)
         self.identity = IdentityContract(db)
 
+    # ---- direct purchase (Buy Now — full listing price, no offer required) ----
+    async def buy_now(self, listing_id: str, user: dict) -> Order:
+        snap = await self.listings.snapshot(listing_id)
+        if not snap:
+            raise DomainError("LISTING_NOT_FOUND", "Listing not found", 404)
+        if not snap.is_available:
+            raise DomainError("LISTING_NOT_AVAILABLE", "This listing is not available for purchase", 409)
+        if user["_id"] == snap.seller_id:
+            raise DomainError("SELF_PURCHASE", "You cannot purchase your own listing", 400)
+
+        detail = await self.listings.detail(listing_id)
+        title = detail["title"] if detail else "Listing"
+
+        order = Order.create_from_listing(
+            buyer_id=user["_id"], seller_id=snap.seller_id,
+            listing_id=listing_id, title=title,
+            amount=snap.price_amount, currency=snap.currency,
+            fee_percent=_fee_percent())
+        try:
+            await self.repo.acquire_listing_lock(listing_id, order.id)
+        except DomainError:
+            raise DomainError("LISTING_NOT_AVAILABLE", "This listing is currently being purchased", 409)
+        try:
+            await self.repo.add(order)
+        except DomainError:
+            await self.repo.release_listing_lock(listing_id, order.id)
+            raise DomainError("LISTING_NOT_AVAILABLE", "This listing is currently being purchased", 409)
+        return order
+
     # ---- event-driven creation (§7, idempotent for at-least-once delivery) ----
     async def create_from_offer_accepted(self, event_payload: dict) -> Order | None:
         offer_id = event_payload["offer_id"]

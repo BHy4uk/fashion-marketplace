@@ -120,7 +120,7 @@ class Offer(AggregateRoot):
         self.expires_at = utc_now() + validity            # reset expiration (§7)
         self.awaiting = BUYER if role == SELLER else SELLER
         self.audit.updated_at = utc_now()
-        self._raise("CounterOfferCreated", self._event_payload())
+        self._raise("CounterOfferCreated", {**self._event_payload(), "awaiting": self.awaiting})
 
     def accept(self, user_id: str) -> None:
         role = self._acting_role(user_id)

@@ -1,0 +1,45 @@
+{
+  "moderation": {
+    "overline": "Administration",
+    "heading": "Moderation",
+    "filter": {
+      "all": "All",
+      "Created": "Created",
+      "UnderReview": "Under Review",
+      "Investigation": "Investigation",
+      "DecisionMade": "Decision Made",
+      "Closed": "Closed",
+      "Dismissed": "Dismissed"
+    },
+    "empty": {
+      "cases": "No cases.",
+      "select": "Select a case"
+    },
+    "section": {
+      "reports": "Reports",
+      "decisions": "Decisions (append-only)",
+      "notes": "Notes"
+    },
+    "message": {
+      "closedCase": "This case is closed and read-only."
+    },
+    "button": {
+      "investigate": "Start investigation",
+      "close": "Close",
+      "dismiss": "Dismiss",
+      "addNote": "Add note",
+      "recordDecision": "Record decision"
+    },
+    "input": {
+      "addNote": "Add a note",
+      "decisionReason": "Decision reason"
+    },
+    "error": {
+      "reasonRequired": "Decision reason required",
+      "forbidden": "Moderators only."
+    },
+    "toast": {
+      "success": "Done"
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "seller": {
+    "overline": "Seller analytics",
+    "heading": "Your performance",
+    "backButton": "← Dashboard",
+    "stat": {
+      "netRevenue": "Net revenue",
+      "completedOrders": "completed orders",
+      "pendingPayout": "Pending payout",
+      "heldInEscrow": "held in escrow",
+      "activeListings": "Active listings",
+      "total": "total",
+      "sales": "Sales",
+      "platformFees": "platform fees",
+      "offersReceived": "Offers received",
+      "accepted": "accepted",
+      "rating": "Rating",
+      "reviews": "reviews"
+    },
+    "section": {
+      "byState": "Listings by state"
+    },
+    "empty": "No listings yet.",
+    "error": {
+      "noData": "No analytics available."
+    }
+  },
+  "admin": {
+    "overline": "Marketplace analytics",
+    "heading": "Platform overview",
+    "moderationButton": "Moderation →",
+    "stat": {
+      "gmv": "GMV",
+      "completed": "completed",
+      "platformFees": "Platform fees",
+      "fromCompleted": "from completed orders",
+      "orders": "Orders",
+      "users": "Users",
+      "listings": "Listings",
+      "fraudSignals": "AI fraud signals",
+      "openCases": "open cases"
+    },
+    "section": {
+      "ordersByStatus": "Orders by status",
+      "listingsByState": "Listings by state",
+      "topBrands": "Top brands",
+      "topCategories": "Top categories"
+    },
+    "error": {
+      "forbidden": "Staff access only.",
+      "noData": "No analytics available."
+    }
+  }
+}

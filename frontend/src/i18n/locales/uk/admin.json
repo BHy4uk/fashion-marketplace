@@ -1,0 +1,45 @@
+{
+  "moderation": {
+    "overline": "Адміністрування",
+    "heading": "Модерація",
+    "filter": {
+      "all": "Усі",
+      "Created": "Нові",
+      "UnderReview": "На розгляді",
+      "Investigation": "Розслідування",
+      "DecisionMade": "Рішення прийнято",
+      "Closed": "Закриті",
+      "Dismissed": "Відхилені"
+    },
+    "empty": {
+      "cases": "Справ немає.",
+      "select": "Оберіть справу"
+    },
+    "section": {
+      "reports": "Скарги",
+      "decisions": "Рішення (незмінні)",
+      "notes": "Нотатки"
+    },
+    "message": {
+      "closedCase": "Ця справа закрита і доступна лише для читання."
+    },
+    "button": {
+      "investigate": "Почати розслідування",
+      "close": "Закрити",
+      "dismiss": "Відхилити",
+      "addNote": "Додати нотатку",
+      "recordDecision": "Зафіксувати рішення"
+    },
+    "input": {
+      "addNote": "Додати нотатку",
+      "decisionReason": "Причина рішення"
+    },
+    "error": {
+      "reasonRequired": "Вкажіть причину рішення",
+      "forbidden": "Тільки для модераторів."
+    },
+    "toast": {
+      "success": "Готово"
+    }
+  }
+}

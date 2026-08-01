@@ -1,0 +1,89 @@
+{
+  "heading": "Checkout",
+  "notAvailable": "This listing is no longer available.",
+  "button": {
+    "back": "Back",
+    "backToListing": "Back to listing",
+    "backToShop": "Back to shop"
+  },
+  "step": {
+    "review": "Review",
+    "shipping": "Shipping",
+    "payment": "Payment",
+    "confirmation": "Confirmation"
+  },
+  "review": {
+    "heading": "Review your item",
+    "description": "Confirm you're happy with this purchase before continuing.",
+    "terms": "By continuing, you agree that this is a second-hand item sold as described. Funds are held in escrow until you confirm delivery. The seller has 5 days to ship after payment.",
+    "continueButton": "Continue to Shipping"
+  },
+  "sidebar": {
+    "orderSummary": "Order Summary",
+    "item": "Item",
+    "shipping": "Shipping",
+    "shippingNote": "Arranged by seller",
+    "total": "Total"
+  },
+  "trust": {
+    "escrow": "Funds held in escrow until delivery",
+    "payment": "Secure, provider-agnostic payment"
+  },
+  "shipping": {
+    "heading": "Shipping information",
+    "description": "Where should the seller ship your order?"
+  },
+  "address": {
+    "heading": "Shipping address",
+    "fullName": "Full name",
+    "fullNamePlaceholder": "Your full name",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "phone": "Phone",
+    "phonePlaceholder": "Phone number",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "addressLine1": "Address",
+    "addressLine1Placeholder": "Street address, building number",
+    "addressLine2": "Apartment / Suite",
+    "addressLine2Placeholder": "Apt, suite, floor, unit (optional)",
+    "city": "City",
+    "cityPlaceholder": "City",
+    "region": "Region / State",
+    "regionPlaceholder": "Region",
+    "postalCode": "Postal code",
+    "postalCodePlaceholder": "Postal / ZIP code",
+    "country": "Country",
+    "selectCountry": "Select country…",
+    "searchCountries": "Search countries…",
+    "noCountriesFound": "No countries found",
+    "continueButton": "Continue to Payment"
+  },
+  "validation": {
+    "fullNameRequired": "Full name is required",
+    "emailRequired": "Valid email address required",
+    "phoneRequired": "Phone number is required",
+    "addressRequired": "Street address is required",
+    "cityRequired": "City is required",
+    "countryRequired": "Please select a country"
+  },
+  "payment": {
+    "heading": "Payment method",
+    "secureNote": "Your payment is processed securely. Funds are held in escrow until you confirm delivery.",
+    "shippingTo": "Shipping to",
+    "totalDue": "Total due today",
+    "certifiedNote": "Payment is handled by a certified provider. No card details are stored by ARCHIVE. Your funds are protected by our buyer guarantee until delivery is confirmed.",
+    "placeOrder": "Place order",
+    "processing": "Processing…"
+  },
+  "confirmation": {
+    "heading": "Order confirmed!",
+    "description": "Your payment was received and is held securely in escrow.",
+    "orderNumber": "Order {{orderNumber}}",
+    "paymentReceived": "Payment received — funds held in escrow",
+    "sellerWillShip": "Seller will ship within 5 days",
+    "escrowRelease": "Escrow released to seller when you confirm delivery",
+    "viewOrders": "View My Orders",
+    "continueShopping": "Continue Shopping"
+  }
+}

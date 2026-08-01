@@ -1,0 +1,32 @@
+{
+  "heading": "Offers",
+  "tab": {
+    "buyer": "My offers",
+    "seller": "Received"
+  },
+  "empty": "No offers here yet.",
+  "status": {
+    "waitingOn": "Waiting on {{actor}}",
+    "fromBuyer": "from {{name}}"
+  },
+  "link": {
+    "viewListing": "View listing →"
+  },
+  "button": {
+    "accept": "Accept",
+    "reject": "Decline",
+    "counter": "Counter",
+    "withdraw": "Withdraw",
+    "send": "Send",
+    "cancel": "Cancel"
+  },
+  "placeholder": {
+    "counterAmount": "Your counter ({{currency}})"
+  },
+  "toast": {
+    "accepted": "Offer accepted",
+    "rejected": "Offer declined",
+    "countered": "Counter offer sent",
+    "canceled": "Offer withdrawn"
+  }
+}

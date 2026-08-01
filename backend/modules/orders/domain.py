@@ -79,6 +79,23 @@ class Order(AggregateRoot):
 
     # ---- factory (§7): created directly into AwaitingPayment per confirmed flow ----
     @classmethod
+    def create_from_listing(cls, *, buyer_id, seller_id, listing_id,
+                            title, amount, currency, fee_percent: int) -> "Order":
+        """Direct purchase at full listing price — no offer required (Buy Now flow)."""
+        item = OrderItem(listing_id=listing_id, title=title,
+                         unit_price=amount, currency=currency)
+        fee = round(amount * fee_percent / 100)
+        order = cls(
+            id=new_id(), order_number=_order_number(), buyer_id=buyer_id,
+            seller_id=seller_id, listing_id=listing_id, items=[item], currency=currency,
+            subtotal=amount, platform_fee=fee, total=amount, status="Created",
+            offer_id=None)
+        order._record(None, "Created", actor=buyer_id, reason="buy_now")
+        order._raise("OrderCreated", order._payload())
+        order._transition("AwaitingPayment", actor="system")
+        return order
+
+    @classmethod
     def create_from_offer(cls, *, buyer_id, seller_id, listing_id, offer_id,
                           title, amount, currency, fee_percent: int) -> "Order":
         item = OrderItem(listing_id=listing_id, title=title,

@@ -8,7 +8,8 @@ from buildingblocks.outbox import subscribe
 
 from .service import NotificationService
 
-_EVENTS = ["OfferAccepted", "PaymentCaptured", "ShipmentDispatched",
+_EVENTS = ["OfferCreated", "CounterOfferCreated", "OfferRejected",
+           "OfferAccepted", "OrderCreated", "PaymentCaptured", "ShipmentDispatched",
            "ShipmentDelivered", "OrderCompleted", "ReviewPublished", "MessageSent"]
 
 

@@ -1,0 +1,28 @@
+{
+  "heading": "My Listings",
+  "button": {
+    "newListing": "+ New listing",
+    "edit": "Edit",
+    "remove": "Remove"
+  },
+  "stat": {
+    "listings": "Listings",
+    "rating": "Rating",
+    "reviews": "Reviews"
+  },
+  "filter": {
+    "all": "All",
+    "published": "Published",
+    "draft": "Draft",
+    "sold": "Sold",
+    "archived": "Archived"
+  },
+  "empty": {
+    "title": "No listings yet",
+    "action": "Create your first listing →",
+    "byState": "No {{state}} listings."
+  },
+  "toast": {
+    "removed": "Listing removed"
+  }
+}

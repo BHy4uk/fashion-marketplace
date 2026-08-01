@@ -1,0 +1,83 @@
+{
+  "shop": {
+    "heading": "All items",
+    "resultCount": "{{count}} result",
+    "resultCount_plural": "{{count}} results"
+  },
+  "sort": {
+    "label": "Sort",
+    "newest": "Newest",
+    "priceAsc": "Price: Low → High",
+    "priceDesc": "Price: High → Low"
+  },
+  "facet": {
+    "brand": "Brand",
+    "category": "Category",
+    "condition": "Condition",
+    "size": "Size",
+    "color": "Color",
+    "gender": "Gender"
+  },
+  "filter": {
+    "removeAria": "Remove {{key}} filter",
+    "active": "Active filters"
+  },
+  "empty": {
+    "title": "No results",
+    "message": "No items match your filters. Try broadening your search."
+  },
+  "listing": {
+    "notFound": "Listing not found",
+    "notFoundMessage": "This item may have been sold or removed.",
+    "backToShop": "Back to shop",
+    "attribute": {
+      "brand": "Brand",
+      "category": "Category",
+      "size": "Size",
+      "color": "Color",
+      "material": "Material",
+      "gender": "Gender",
+      "condition": "Condition",
+      "season": "Season"
+    },
+    "breadcrumb": {
+      "shop": "Shop"
+    },
+    "button": {
+      "buyNow": "Buy now",
+      "makeOffer": "Make an offer",
+      "messageSeller": "Message seller"
+    },
+    "trust": {
+      "escrow": "Secure escrow",
+      "delivery": "Tracked delivery",
+      "verified": "Verified sellers"
+    },
+    "badge": {
+      "reserved": "Reserved",
+      "sold": "Sold"
+    },
+    "descriptionHeading": "Description",
+    "offer": {
+      "amountPlaceholder": "Your offer ({{currency}})",
+      "send": "Send offer",
+      "sending": "Sending…",
+      "loginPrompt": "Log in to make an offer"
+    },
+    "toast": {
+      "offerSent": "Offer sent to the seller"
+    }
+  },
+  "search": {
+    "placeholder": "Search brands, items, categories…",
+    "clearAria": "Clear search",
+    "recentSearches": "Recent searches",
+    "popular": "Popular",
+    "popularBrands": ["Stone Island", "Maison Margiela", "Rick Owens", "Acne Studios", "Carhartt WIP", "Nike", "New Balance", "Prada"],
+    "noResults": "No results for \"{{query}}\"",
+    "loading": "Searching…",
+    "brands": "Brands",
+    "categories": "Categories",
+    "items": "Items"
+  }
+}

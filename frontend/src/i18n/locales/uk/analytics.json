@@ -1,0 +1,54 @@
+{
+  "seller": {
+    "overline": "Аналітика продавця",
+    "heading": "Ваші показники",
+    "backButton": "← Дашборд",
+    "stat": {
+      "netRevenue": "Чистий дохід",
+      "completedOrders": "завершених замовлень",
+      "pendingPayout": "Очікувана виплата",
+      "heldInEscrow": "на ескроу",
+      "activeListings": "Активні оголошення",
+      "total": "всього",
+      "sales": "Продажі",
+      "platformFees": "комісія платформи",
+      "offersReceived": "Отримані пропозиції",
+      "accepted": "прийнято",
+      "rating": "Рейтинг",
+      "reviews": "відгуків"
+    },
+    "section": {
+      "byState": "Оголошення за статусом"
+    },
+    "empty": "Оголошень ще немає.",
+    "error": {
+      "noData": "Аналітика недоступна."
+    }
+  },
+  "admin": {
+    "overline": "Аналітика маркетплейсу",
+    "heading": "Огляд платформи",
+    "moderationButton": "Модерація →",
+    "stat": {
+      "gmv": "GMV",
+      "completed": "завершено",
+      "platformFees": "Комісія платформи",
+      "fromCompleted": "від завершених замовлень",
+      "orders": "Замовлення",
+      "users": "Користувачі",
+      "listings": "Оголошення",
+      "fraudSignals": "Сигнали шахрайства ШІ",
+      "openCases": "відкритих справ"
+    },
+    "section": {
+      "ordersByStatus": "Замовлення за статусом",
+      "listingsByState": "Оголошення за станом",
+      "topBrands": "Топ бренди",
+      "topCategories": "Топ категорії"
+    },
+    "error": {
+      "forbidden": "Тільки для персоналу.",
+      "noData": "Аналітика недоступна."
+    }
+  }
+}

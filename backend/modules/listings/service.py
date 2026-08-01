@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
-from buildingblocks.domain import DomainError
+from buildingblocks.domain import DomainError, utc_now
 from modules.identity.contracts import IdentityContract
 
 from .domain import Attributes, Listing, ListingImage, Money
@@ -52,6 +52,31 @@ class ListingService:
     async def change_price(self, listing_id: str, seller_id: str, amount: int) -> Listing:
         l = await self._owned(listing_id, seller_id)
         l.change_price(Money(amount=amount, currency=l.price.currency))
+        await self.repo.save(l)
+        return l
+
+    async def update_listing(self, listing_id: str, seller_id: str, data: dict) -> Listing:
+        """Update editable fields of a Draft or Published listing."""
+        l = await self._owned(listing_id, seller_id)
+        if l.state in ("Sold", "SoftDeleted"):
+            raise DomainError("INVALID_STATE", "Cannot edit a sold or deleted listing", 409)
+        if "title" in data and data["title"]:
+            l.title = data["title"].strip()
+        if "description" in data:
+            l.description = data["description"]
+        if "price_amount" in data and data["price_amount"]:
+            l.price = Money(amount=int(data["price_amount"]), currency=l.price.currency)
+        if "allow_offers" in data:
+            l.allow_offers = bool(data["allow_offers"])
+        attr_fields = ("brand", "category", "gender", "size", "color", "material",
+                       "condition", "season", "style")
+        for f in attr_fields:
+            if f in data:
+                setattr(l.attributes, f, data[f])
+        if "images" in data and data["images"]:
+            l.images = [ListingImage(file_id=i.get("file_id", i["url"]), url=i["url"], position=n)
+                        for n, i in enumerate(data["images"])]
+        l.audit.updated_at = utc_now()
         await self.repo.save(l)
         return l
 

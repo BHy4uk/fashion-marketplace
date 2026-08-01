@@ -1,0 +1,126 @@
+{
+  "nav": {
+    "shop": "Shop",
+    "sell": "Sell",
+    "login": "Log in",
+    "searchPlaceholder": "Search brands, items…",
+    "switchToDark": "Switch to dark",
+    "switchToLight": "Switch to light"
+  },
+  "account": {
+    "trigger": "Account",
+    "member": "Member",
+    "admin": "Admin",
+    "sell": "Sell",
+    "buy": "Buy",
+    "account": "Account",
+    "myListings": "My Listings",
+    "offersReceived": "Offers Received",
+    "drafts": "Drafts",
+    "orders": "Orders",
+    "offersSent": "Offers Sent",
+    "messages": "Messages",
+    "analytics": "Analytics",
+    "settings": "Settings",
+    "moderation": "Moderation",
+    "insights": "Insights",
+    "darkMode": "Dark mode",
+    "lightMode": "Light mode",
+    "signOut": "Sign out"
+  },
+  "footer": {
+    "tagline": "Premium fashion resale",
+    "sell": "Sell",
+    "shop": "Shop",
+    "about": "About",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "copyright": "© {{year}} ARCHIVE. All rights reserved."
+  },
+  "market": {
+    "selectorTitle": "Market & Language",
+    "market": "Market",
+    "language": "Language",
+    "currency": "Currency",
+    "save": "Save preferences"
+  },
+  "common": {
+    "loading": "Loading…",
+    "noResults": "No results",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "search": "Search",
+    "filter": "Filter",
+    "sortBy": "Sort by",
+    "viewAll": "View all",
+    "new": "New",
+    "sold": "Sold",
+    "draft": "Draft",
+    "published": "Published"
+  },
+  "listing": {
+    "condition": {
+      "BRAND_NEW": "Brand New",
+      "LIKE_NEW": "Like New",
+      "GENTLY_USED": "Gently Used",
+      "USED": "Used",
+      "WELL_WORN": "Well Worn"
+    },
+    "shipsFrom": "Ships from",
+    "makeOffer": "Make an offer",
+    "buyNow": "Buy now",
+    "addToFavorites": "Add to favorites",
+    "shareListng": "Share",
+    "noListings": "No listings yet",
+    "startSelling": "Start selling"
+  },
+  "auth": {
+    "loginTitle": "Welcome back",
+    "loginSubtitle": "Sign in to continue",
+    "registerTitle": "Join ARCHIVE",
+    "registerSubtitle": "Create your account",
+    "email": "Email",
+    "password": "Password",
+    "displayName": "Display name",
+    "loginButton": "Sign in",
+    "registerButton": "Create account",
+    "switchToRegister": "Don't have an account? Register",
+    "switchToLogin": "Already have an account? Sign in",
+    "forgotPassword": "Forgot password?"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "notFound": "Page not found",
+    "unauthorized": "You need to sign in",
+    "forbidden": "You don't have access to this",
+    "network": "Connection error. Check your internet."
+  },
+  "offers": {
+    "title": "Offers",
+    "myOffers": "My offers",
+    "received": "Received",
+    "accept": "Accept",
+    "decline": "Decline",
+    "counter": "Counter",
+    "cancel": "Cancel offer",
+    "noOffers": "No offers yet"
+  },
+  "orders": {
+    "title": "Orders",
+    "noOrders": "No orders yet"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "shippingAddress": "Shipping address",
+    "paymentMethod": "Payment method",
+    "orderSummary": "Order summary",
+    "placeOrder": "Place order",
+    "total": "Total"
+  }
+}

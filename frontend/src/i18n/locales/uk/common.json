@@ -1,0 +1,126 @@
+{
+  "nav": {
+    "shop": "Каталог",
+    "sell": "Продати",
+    "login": "Увійти",
+    "searchPlaceholder": "Пошук брендів, речей…",
+    "switchToDark": "Темна тема",
+    "switchToLight": "Світла тема"
+  },
+  "account": {
+    "trigger": "Акаунт",
+    "member": "Учасник",
+    "admin": "Адміністратор",
+    "sell": "Продаю",
+    "buy": "Купую",
+    "account": "Акаунт",
+    "myListings": "Мої оголошення",
+    "offersReceived": "Отримані пропозиції",
+    "drafts": "Чернетки",
+    "orders": "Замовлення",
+    "offersSent": "Надіслані пропозиції",
+    "messages": "Повідомлення",
+    "analytics": "Аналітика",
+    "settings": "Налаштування",
+    "moderation": "Модерація",
+    "insights": "Статистика",
+    "darkMode": "Темна тема",
+    "lightMode": "Світла тема",
+    "signOut": "Вийти"
+  },
+  "footer": {
+    "tagline": "Преміальний ресейл моди",
+    "sell": "Продати",
+    "shop": "Каталог",
+    "about": "Про нас",
+    "terms": "Умови",
+    "privacy": "Конфіденційність",
+    "copyright": "© {{year}} ARCHIVE. Всі права захищені."
+  },
+  "market": {
+    "selectorTitle": "Ринок та мова",
+    "market": "Ринок",
+    "language": "Мова",
+    "currency": "Валюта",
+    "save": "Зберегти"
+  },
+  "common": {
+    "loading": "Завантаження…",
+    "noResults": "Нічого не знайдено",
+    "cancel": "Скасувати",
+    "save": "Зберегти",
+    "delete": "Видалити",
+    "edit": "Редагувати",
+    "confirm": "Підтвердити",
+    "back": "Назад",
+    "next": "Далі",
+    "submit": "Надіслати",
+    "search": "Пошук",
+    "filter": "Фільтр",
+    "sortBy": "Сортувати за",
+    "viewAll": "Дивитись усі",
+    "new": "Нове",
+    "sold": "Продано",
+    "draft": "Чернетка",
+    "published": "Опубліковано"
+  },
+  "listing": {
+    "condition": {
+      "BRAND_NEW": "Нове з бірками",
+      "LIKE_NEW": "Як нове",
+      "GENTLY_USED": "Дбайливо використовувалось",
+      "USED": "У використанні",
+      "WELL_WORN": "Помітно зношене"
+    },
+    "shipsFrom": "Відправка з",
+    "makeOffer": "Зробити пропозицію",
+    "buyNow": "Купити зараз",
+    "addToFavorites": "Додати до обраного",
+    "shareListng": "Поділитись",
+    "noListings": "Оголошень ще немає",
+    "startSelling": "Почати продавати"
+  },
+  "auth": {
+    "loginTitle": "З поверненням",
+    "loginSubtitle": "Увійдіть, щоб продовжити",
+    "registerTitle": "Приєднатись до ARCHIVE",
+    "registerSubtitle": "Створіть акаунт",
+    "email": "Email",
+    "password": "Пароль",
+    "displayName": "Ім'я профілю",
+    "loginButton": "Увійти",
+    "registerButton": "Створити акаунт",
+    "switchToRegister": "Немає акаунту? Зареєструватись",
+    "switchToLogin": "Вже є акаунт? Увійти",
+    "forgotPassword": "Забули пароль?"
+  },
+  "errors": {
+    "generic": "Щось пішло не так. Спробуйте ще раз.",
+    "notFound": "Сторінку не знайдено",
+    "unauthorized": "Необхідно увійти в систему",
+    "forbidden": "У вас немає доступу",
+    "network": "Помилка з'єднання. Перевірте інтернет."
+  },
+  "offers": {
+    "title": "Пропозиції",
+    "myOffers": "Мої пропозиції",
+    "received": "Отримані",
+    "accept": "Прийняти",
+    "decline": "Відхилити",
+    "counter": "Зустрічна пропозиція",
+    "cancel": "Скасувати пропозицію",
+    "noOffers": "Пропозицій ще немає"
+  },
+  "orders": {
+    "title": "Замовлення",
+    "noOrders": "Замовлень ще немає"
+  },
+  "checkout": {
+    "title": "Оформлення",
+    "shippingAddress": "Адреса доставки",
+    "paymentMethod": "Спосіб оплати",
+    "orderSummary": "Підсумок замовлення",
+    "placeOrder": "Оформити замовлення",
+    "total": "Разом"
+  }
+}

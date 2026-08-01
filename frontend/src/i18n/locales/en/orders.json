@@ -1,0 +1,35 @@
+{
+  "heading": "Orders",
+  "tab": {
+    "buyer": "Purchases",
+    "seller": "Sales"
+  },
+  "empty": "No orders here yet.",
+  "seller": {
+    "feeInfo": "Fee: {{fee}} · You receive {{amount}}"
+  },
+  "link": {
+    "viewItem": "View item →"
+  },
+  "button": {
+    "payNow": "Pay now",
+    "cancel": "Cancel",
+    "dispatch": "Dispatch shipment",
+    "confirmDelivery": "Confirm delivery"
+  },
+  "status": {
+    "PendingPayment": "Awaiting payment",
+    "Paid": "Paid",
+    "Shipped": "Shipped",
+    "Delivered": "Delivered",
+    "Completed": "Completed",
+    "Canceled": "Canceled",
+    "Disputed": "Disputed"
+  },
+  "toast": {
+    "paymentCaptured": "Payment captured — funds held in escrow",
+    "dispatched": "Shipment dispatched — tracking is now active",
+    "delivered": "Delivery confirmed — escrow payout scheduled to the seller",
+    "canceled": "Order canceled"
+  }
+}

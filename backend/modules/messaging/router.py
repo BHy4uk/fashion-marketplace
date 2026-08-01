@@ -44,6 +44,14 @@ async def my_conversations(user: dict = Depends(get_current_user),
     return {"items": await MessagingService(db).list_for_user(user)}
 
 
+@router.get("/unread-count")
+async def unread_count(user: dict = Depends(get_current_user),
+                       db: AsyncIOMotorDatabase = Depends(get_db)):
+    items = await MessagingService(db).list_for_user(user)
+    total = sum(c.get("unread", 0) for c in items)
+    return {"count": total}
+
+
 @router.get("/{conversation_id}/messages")
 async def history(conversation_id: str, user: dict = Depends(get_current_user),
                   db: AsyncIOMotorDatabase = Depends(get_db)):

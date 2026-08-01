@@ -3,9 +3,7 @@ FROM node:20
 WORKDIR /app/frontend
 
 ENV HOST=0.0.0.0 \
-    PORT=3000 \
-    CHOKIDAR_USEPOLLING=true \
-    WDS_SOCKET_PORT=0
+    PORT=3000
 
 RUN npm install -g yarn
 

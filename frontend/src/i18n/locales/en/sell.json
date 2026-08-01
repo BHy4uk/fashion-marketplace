@@ -1,0 +1,241 @@
+{
+  "draft": {
+    "restoreBanner": "You have an unsaved draft. Continue where you left off?",
+    "restoreButton": "Restore draft",
+    "discardButton": "Start fresh",
+    "dismissButton": "Dismiss"
+  },
+  "wizard": {
+    "stepsAria": "Listing wizard steps",
+    "stepLabel": "Step {{current}} of {{total}}",
+    "step": {
+      "photos": "Photos",
+      "details": "Details",
+      "condition": "Condition",
+      "pricing": "Pricing",
+      "shipping": "Shipping",
+      "review": "Review"
+    },
+    "status": {
+      "completed": "completed"
+    },
+    "completedAria": "{{label}} (completed)",
+    "button": {
+      "back": "Back",
+      "next": "Continue",
+      "publish": "Publish listing",
+      "publishing": "Publishing…",
+      "saveDraft": "Save draft"
+    }
+  },
+  "photos": {
+    "heading": "Add photos",
+    "description": "Great photos are your listing's most important asset. We recommend at least 5 from different angles.",
+    "tip": {
+      "front": "Front — clean background",
+      "back": "Back view",
+      "label": "Label / size tag",
+      "flaws": "Any flaws or wear",
+      "detail": "Detail shot"
+    },
+    "action": {
+      "dragOrChoose": "Drag photos here or choose files"
+    },
+    "format": {
+      "supported": "JPG, PNG, WEBP",
+      "remaining": " — {{count}} more allowed",
+      "max": " — up to 10 photos"
+    },
+    "section": {
+      "angles": "Recommended angles"
+    },
+    "hint": {
+      "reorder": "{{count}}/10 · Drag to reorder · First photo is the cover"
+    },
+    "warning": {
+      "addMore": "Add {{count}} more for better visibility"
+    },
+    "badge": {
+      "cover": "Cover"
+    },
+    "aria": {
+      "upload": "Upload photos",
+      "remove": "Remove photo"
+    },
+    "validation": {
+      "required": "Add at least one photo."
+    }
+  },
+  "details": {
+    "heading": "Product details",
+    "description": "Complete information helps buyers find your listing and builds confidence.",
+    "field": {
+      "title": "Title *",
+      "brand": "Brand",
+      "category": "Category *",
+      "gender": "Gender",
+      "size": "Size",
+      "color": "Color",
+      "material": "Material",
+      "season": "Season",
+      "collection": "Collection / Model",
+      "description": "Description"
+    },
+    "placeholder": {
+      "title": "e.g. Stone Island Shadow Project Jacket AW23",
+      "material": "e.g. 100% Cotton, Wool blend",
+      "collection": "e.g. Ghost, AW23 capsule",
+      "description": "Describe the item — styling notes, why you're selling, any notable details…"
+    },
+    "hint": {
+      "title": "Include brand, model, and season for better discoverability",
+      "descriptionLength": "aim for 80+ characters",
+      "descriptionComplete": "✓ Looking good"
+    },
+    "option": {
+      "selectBrand": "Select brand",
+      "selectCategory": "Select category",
+      "selectSize": "Select size",
+      "selectColor": "Select color",
+      "none": "—"
+    },
+    "section": {
+      "categoryDetails": "{{category}} details"
+    }
+  },
+  "condition": {
+    "heading": "Condition & measurements",
+    "description": "Accurate condition and measurements significantly reduce returns and increase buyer confidence.",
+    "field": {
+      "condition": "Condition *",
+      "notes": "Condition notes"
+    },
+    "placeholder": {
+      "notes": "Describe any flaws, repairs, alterations, or special details. Honesty builds trust.",
+      "measurement": "—"
+    },
+    "value": {
+      "BRAND_NEW": "Brand New",
+      "LIKE_NEW": "Like New",
+      "GENTLY_USED": "Gently Used",
+      "USED": "Used",
+      "WELL_WORN": "Well Worn"
+    },
+    "desc": {
+      "BRAND_NEW": "Never worn, original tags still attached",
+      "LIKE_NEW": "Never worn, in perfect condition",
+      "GENTLY_USED": "Worn a few times, essentially perfect",
+      "USED": "Lightly used with visible but minimal wear",
+      "WELL_WORN": "Noticeable wear throughout, all details disclosed"
+    },
+    "section": {
+      "included": "Included with item",
+      "measurements": "Measurements (cm)"
+    },
+    "option": {
+      "auth": "Authentication documents",
+      "receipt": "Original receipt",
+      "packaging": "Original packaging"
+    },
+    "hint": {
+      "measurements": "Listings with measurements sell faster",
+      "optional": "Skip if not applicable — measurements are optional but recommended."
+    }
+  },
+  "pricing": {
+    "heading": "Pricing & offers",
+    "description": "Set your price. You can adjust it at any time after publishing.",
+    "field": {
+      "price": "Listing price ({{currency}}) *",
+      "allowOffers": "Accept offers",
+      "minOffer": "Minimum offer (optional)"
+    },
+    "breakdown": {
+      "listing": "Listing price",
+      "fee": "Platform fee (10%)",
+      "payout": "You receive"
+    },
+    "placeholder": {
+      "minOffer": "Any amount"
+    },
+    "hint": {
+      "minOffer": "Offers below {{amount}} will not be shown to buyers",
+      "allowOffers": "Let buyers negotiate — listings with offers receive significantly more engagement"
+    }
+  },
+  "shipping": {
+    "heading": "Shipping",
+    "description": "International shipping dramatically expands your audience. Most top sellers ship worldwide.",
+    "section": {
+      "shipsFrom": "Ships from",
+      "shipsTo": "Ships to"
+    },
+    "field": {
+      "country": "Country",
+      "city": "City",
+      "notes": "Shipping notes (optional)"
+    },
+    "placeholder": {
+      "city": "e.g. Kyiv, Berlin, Paris",
+      "notes": "e.g. Ships within 1–2 business days. Happy to discuss combined shipping."
+    },
+    "option": {
+      "domestic": "Ukraine only",
+      "europe": "Europe",
+      "worldwide": "Worldwide"
+    },
+    "desc": {
+      "domestic": "Ship within Ukraine via Nova Poshta or Ukrposhta",
+      "europe": "Ship to EU and neighbouring European countries",
+      "worldwide": "Ship anywhere — maximises your potential buyers"
+    }
+  },
+  "review": {
+    "heading": "Review & publish",
+    "description": "Everything looks good? Publish your listing to make it visible to buyers.",
+    "score": {
+      "label": "Listing quality score",
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "needsWork": "Needs work"
+    },
+    "section": {
+      "photos": "Photos",
+      "details": "Product details",
+      "condition": "Condition",
+      "pricing": "Pricing",
+      "shipping": "Shipping"
+    },
+    "button": {
+      "edit": "Edit"
+    },
+    "empty": {
+      "photos": "No photos added",
+      "shipping": "Not configured"
+    },
+    "badge": {
+      "acceptingOffers": "✓ Accepting offers"
+    },
+    "attribute": {
+      "size": "Size {{size}}"
+    }
+  },
+  "toast": {
+    "published": "Listing published!",
+    "draftSaved": "Draft saved",
+    "publishError": "Could not publish. Check all required fields."
+  },
+  "edit": {
+    "heading": "Edit listing",
+    "cancel": "Cancel",
+    "photosLabel": "Photos",
+    "addMorePhotos": "Add more photos or choose files",
+    "itemDetails": "Item details",
+    "allowOffers": "Allow buyers to make offers",
+    "saveChanges": "Save changes",
+    "saving": "Saving...",
+    "toastError": "Failed to load listing",
+    "toastUpdated": "Listing updated"
+  }
+}

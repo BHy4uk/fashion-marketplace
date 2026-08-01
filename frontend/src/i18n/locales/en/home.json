@@ -1,0 +1,13 @@
+{
+  "hero": {
+    "title": "Buy & sell\nthe fashion\nworth keeping.",
+    "description": "Curated designer, streetwear and archive pieces. Transparent seller reputation, secure escrow. List in under a minute.",
+    "shopButton": "Shop the marketplace",
+    "sellButton": "Start selling",
+    "imgAlt": "Fashion editorial — streetwear portrait"
+  },
+  "section": {
+    "justDropped": "Just dropped",
+    "viewAll": "View all →"
+  }
+}

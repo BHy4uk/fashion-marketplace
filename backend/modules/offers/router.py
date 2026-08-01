@@ -46,6 +46,15 @@ async def listing_offers(listing_id: str, user: dict = Depends(get_current_user)
     return {"items": await OfferService(db).list_for_listing(listing_id, user["_id"])}
 
 
+@router.get("/counts")
+async def counts(user: dict = Depends(get_current_user),
+                 db: AsyncIOMotorDatabase = Depends(get_db)):
+    uid = user["_id"]
+    buyer = await db.offers.count_documents({"buyer_id": uid, "status": "Active", "awaiting": "buyer"})
+    seller = await db.offers.count_documents({"seller_id": uid, "status": "Active", "awaiting": "seller"})
+    return {"buyer": buyer, "seller": seller}
+
+
 @router.get("/{offer_id}")
 async def detail(offer_id: str, user: dict = Depends(get_current_user),
                  db: AsyncIOMotorDatabase = Depends(get_db)):

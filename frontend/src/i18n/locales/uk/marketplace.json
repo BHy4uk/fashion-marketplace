@@ -1,0 +1,83 @@
+{
+  "shop": {
+    "heading": "Усі товари",
+    "resultCount": "{{count}} результат",
+    "resultCount_plural": "{{count}} результати"
+  },
+  "sort": {
+    "label": "Сортування",
+    "newest": "Найновіші",
+    "priceAsc": "Ціна: від дешевших",
+    "priceDesc": "Ціна: від дорожчих"
+  },
+  "facet": {
+    "brand": "Бренд",
+    "category": "Категорія",
+    "condition": "Стан",
+    "size": "Розмір",
+    "color": "Колір",
+    "gender": "Стать"
+  },
+  "filter": {
+    "removeAria": "Прибрати фільтр {{key}}",
+    "active": "Активні фільтри"
+  },
+  "empty": {
+    "title": "Нічого не знайдено",
+    "message": "Жодного товару не відповідає вашим фільтрам. Спробуйте розширити пошук."
+  },
+  "listing": {
+    "notFound": "Оголошення не знайдено",
+    "notFoundMessage": "Можливо, цей товар вже продано або видалено.",
+    "backToShop": "Повернутись до каталогу",
+    "attribute": {
+      "brand": "Бренд",
+      "category": "Категорія",
+      "size": "Розмір",
+      "color": "Колір",
+      "material": "Матеріал",
+      "gender": "Стать",
+      "condition": "Стан",
+      "season": "Сезон"
+    },
+    "breadcrumb": {
+      "shop": "Каталог"
+    },
+    "button": {
+      "buyNow": "Купити зараз",
+      "makeOffer": "Зробити пропозицію",
+      "messageSeller": "Написати продавцю"
+    },
+    "trust": {
+      "escrow": "Захищений ескроу",
+      "delivery": "Відстеження доставки",
+      "verified": "Перевірені продавці"
+    },
+    "badge": {
+      "reserved": "Зарезервовано",
+      "sold": "Продано"
+    },
+    "descriptionHeading": "Опис",
+    "offer": {
+      "amountPlaceholder": "Ваша пропозиція ({{currency}})",
+      "send": "Надіслати пропозицію",
+      "sending": "Надсилання…",
+      "loginPrompt": "Увійдіть, щоб зробити пропозицію"
+    },
+    "toast": {
+      "offerSent": "Пропозицію надіслано продавцю"
+    }
+  },
+  "search": {
+    "placeholder": "Пошук брендів, речей, категорій…",
+    "clearAria": "Очистити пошук",
+    "recentSearches": "Недавні пошуки",
+    "popular": "Популярне",
+    "popularBrands": ["Stone Island", "Maison Margiela", "Rick Owens", "Acne Studios", "Carhartt WIP", "Nike", "New Balance", "Prada"],
+    "noResults": "Нічого не знайдено за «{{query}}»",
+    "loading": "Пошук…",
+    "brands": "Бренди",
+    "categories": "Категорії",
+    "items": "Товари"
+  }
+}

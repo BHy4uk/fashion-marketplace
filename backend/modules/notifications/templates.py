@@ -18,6 +18,29 @@ def specs_for(event_type: str, payload: dict) -> list[dict]:
     """Return list of {recipient_id, notif_type, title, body}. Empty => no notification."""
     p = payload
 
+    if event_type == "OfferCreated":
+        return [{
+            "recipient_id": p["seller_id"], "notif_type": "OfferReceived",
+            "title": "New offer received",
+            "body": f"A buyer has made an offer of {_money(p)}. Tap to review and respond.",
+        }]
+
+    if event_type == "CounterOfferCreated":
+        awaiting = p.get("awaiting")
+        recipient = p["buyer_id"] if awaiting == "buyer" else p["seller_id"]
+        return [{
+            "recipient_id": recipient, "notif_type": "CounterOfferReceived",
+            "title": "Counter offer received",
+            "body": f"A counter offer of {_money(p)} has been made. Tap to accept, reject, or counter.",
+        }]
+
+    if event_type == "OfferRejected":
+        return [{
+            "recipient_id": p["buyer_id"], "notif_type": "OfferRejected",
+            "title": "Offer declined",
+            "body": "The seller has declined your offer. You can make a new offer at a different price.",
+        }]
+
     if event_type == "OfferAccepted":
         # notify the party who did NOT accept
         accepted_by = p.get("accepted_by")
@@ -26,6 +49,15 @@ def specs_for(event_type: str, payload: dict) -> list[dict]:
             "recipient_id": recipient, "notif_type": "OfferAccepted",
             "title": "Your offer was accepted" if accepted_by == "seller" else "Offer accepted",
             "body": f"An offer of {_money({'amount': p.get('accepted_amount'), 'currency': p.get('currency')})} was accepted. An order has been created.",
+        }]
+
+    if event_type == "OrderCreated":
+        if p.get("offer_id"):  # offer flow: OfferAccepted already notified both parties
+            return []
+        return [{
+            "recipient_id": p["seller_id"], "notif_type": "OrderReceived",
+            "title": "New order received",
+            "body": f"Order {p.get('order_number')} was placed via Buy Now. Awaiting buyer payment.",
         }]
 
     if event_type == "PaymentCaptured":

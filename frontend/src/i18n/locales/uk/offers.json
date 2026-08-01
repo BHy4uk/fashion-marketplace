@@ -1,0 +1,32 @@
+{
+  "heading": "Пропозиції",
+  "tab": {
+    "buyer": "Мої пропозиції",
+    "seller": "Отримані"
+  },
+  "empty": "Пропозицій ще немає.",
+  "status": {
+    "waitingOn": "Очікуємо {{actor}}",
+    "fromBuyer": "від {{name}}"
+  },
+  "link": {
+    "viewListing": "Перейти до оголошення →"
+  },
+  "button": {
+    "accept": "Прийняти",
+    "reject": "Відхилити",
+    "counter": "Зустрічна",
+    "withdraw": "Відкликати",
+    "send": "Надіслати",
+    "cancel": "Скасувати"
+  },
+  "placeholder": {
+    "counterAmount": "Ваша зустрічна ({{currency}})"
+  },
+  "toast": {
+    "accepted": "Пропозицію прийнято",
+    "rejected": "Пропозицію відхилено",
+    "countered": "Зустрічну пропозицію надіслано",
+    "canceled": "Пропозицію відкликано"
+  }
+}
